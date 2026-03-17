@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#C9A96E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Black Optica" />
+<meta name="description" content="Cronograma de visitas de oftalmólogos — Black Optica" />
+<title>Black Optica — Cronograma</title>
+<link rel="manifest" href="#" id="manifest-link" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --alabaster: #F5F0E8;
+  --lino: #E8DCC8;
+  --arena: #D4C5A9;
+  --espresso: #2C2420;
+  --black: #1A1410;
+  --roble: #8B6F47;
+  --dorado: #C9A96E;
+  --cobre: #7A5C3A;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:'Poppins',sans-serif;
+  background:var(--alabaster);
+  color:var(--black);
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--arena);border-radius:4px}
+
+/* ── ONBOARDING OVERLAY ── */
+#onboarding{
+  position:fixed;inset:0;z-index:1000;
+  background:var(--black);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+  opacity:1;transition:opacity .4s ease;
+}
+#onboarding.hiding{opacity:0;pointer-events:none}
+
+.ob-logo{
+  width:140px;margin-bottom:32px;
+  animation:obLogoIn .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes obLogoIn{from{opacity:0;transform:scale(.7) translateY(-20px)}to{opacity:1;transform:none}}
+
+.ob-progress{
+  display:flex;gap:8px;margin-bottom:32px;
+}
+.ob-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(255,255,255,.2);
+  transition:all .3s ease;
+}
+.ob-dot.active{background:var(--dorado);width:24px;border-radius:4px}
+
+.ob-card{
+  width:100%;max-width:380px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(201,169,110,.2);
+  border-radius:24px;
+  padding:36px 28px;
+  backdrop-filter:blur(20px);
+  display:none;
+  animation:obCardIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+.ob-card.active{display:block}
+@keyframes obCardIn{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:none}}
+
+.ob-icon{
+  width:64px;height:64px;border-radius:18px;
+  background:linear-gradient(135deg,var(--dorado),var(--cobre));
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;margin-bottom:20px;
+}
+.ob-card h2{
+  font-size:1.5rem;font-weight:700;
+  color:#fff;margin-bottom:8px;line-height:1.2;
+}
+.ob-card p{
+  font-size:.9rem;color:rgba(255,255,255,.6);
+  line-height:1.6;margin-bottom:24px;
+}
+
+.ob-input{
+  width:100%;padding:14px 18px;
+  background:rgba(255,255,255,.08);
+  border:1.5px solid rgba(201,169,110,.3);
+  border-radius:12px;
+  color:#fff;font-family:'Poppins',sans-serif;
+  font-size:1rem;font-weight:500;
+  outline:none;transition:border-color .2s;
+  margin-bottom:20px;
+}
+.ob-input::placeholder{color:rgba(255,255,255,.3)}
+.ob-input:focus{border-color:var(--dorado)}
+
+.ob-feature{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 0;border-bottom:1px solid rgba(255,255,255,.06);
+}
+.ob-feature:last-child{border-bottom:none}
+.ob-feature-icon{
+  width:40px;height:40px;border-radius:12px;flex-shrink:0;
+  background:rgba(201,169,110,.15);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.ob-feature-text{font-size:.85rem;color:rgba(255,255,255,.7);line-height:1.4}
+.ob-feature-text strong{color:#fff;display:block;font-weight:600;font-size:.9rem}
+
+.ob-install-step{
+  display:flex;align-items:flex-start;gap:12px;
+  margin-bottom:14px;
+}
+.ob-step-num{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--dorado),var(--cobre));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;color:var(--black);
+}
+.ob-step-text{font-size:.85rem;color:rgba(255,255,255,.7);line-height:1.5;padding-top:4px}
+.ob-step-text strong{color:#fff}
+
+.ob-platform-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;font-size:.75rem;font-weight:600;
+  margin-bottom:16px;
+}
+.ob-platform-badge.ios{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
+.ob-platform-badge.android{background:rgba(100,210,80,.15);color:#6fd95a}
+
+.ob-btn{
+  width:100%;padding:15px;border-radius:14px;border:none;
+  background:linear-gradient(135deg,var(--dorado),var(--cobre));
+  color:var(--black);font-family:'Poppins',sans-serif;
+  font-size:1rem;font-weight:700;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:0 8px 24px rgba(201,169,110,.3);
+}
+.ob-btn:active{transform:scale(.97)}
+.ob-btn-secondary{
+  width:100%;padding:13px;border-radius:14px;
+  border:1.5px solid rgba(201,169,110,.3);
+  background:transparent;color:rgba(255,255,255,.6);
+  font-family:'Poppins',sans-serif;font-size:.9rem;font-weight:500;
+  cursor:pointer;margin-top:10px;transition:all .2s;
+}
+.ob-btn-secondary:hover{border-color:var(--dorado);color:var(--dorado)}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;min-height:100vh}
+#app.visible{display:flex}
+
+/* ── NAVBAR ── */
+.navbar{
+  position:sticky;top:0;z-index:100;
+  background:linear-gradient(135deg,var(--black) 0%,var(--espresso) 100%);
+  padding:12px 20px;
+  padding-top:calc(12px + var(--safe-top));
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(201,169,110,.15);
+  box-shadow:0 4px 30px rgba(0,0,0,.3);
+}
+.navbar-logo{height:34px;object-fit:contain}
+.navbar-right{display:flex;align-items:center;gap:12px}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{
+  padding:7px 16px;border-radius:20px;border:none;
+  background:transparent;color:rgba(255,255,255,.5);
+  font-family:'Poppins',sans-serif;font-size:.8rem;font-weight:500;
+  cursor:pointer;transition:all .2s;
+}
+.nav-tab.active{
+  background:rgba(201,169,110,.2);color:var(--dorado);
+  border:1px solid rgba(201,169,110,.3);
+}
+.user-chip{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 12px;border-radius:20px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  cursor:pointer;transition:all .2s;
+}
+.user-chip:hover{background:rgba(255,255,255,.1)}
+.user-avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,var(--dorado),var(--cobre));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;color:var(--black);
+}
+.user-name{font-size:.8rem;font-weight:500;color:rgba(255,255,255,.8);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── PAGES ── */
+.page{display:none;flex:1;padding-bottom:calc(80px + var(--safe-bottom))}
+.page.active{display:block}
+
+/* ── HOME PAGE ── */
+.hero-section{
+  background:linear-gradient(135deg,var(--black) 0%,var(--espresso) 60%,#3d2d28 100%);
+  padding:28px 20px 32px;
+  position:relative;overflow:hidden;
+}
+.hero-section::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 80% 20%,rgba(201,169,110,.12) 0%,transparent 60%);
+  pointer-events:none;
+}
+.hero-section::after{
+  content:'';position:absolute;
+  bottom:-30px;left:-10%;right:-10%;
+  height:60px;background:var(--alabaster);
+  border-radius:50% 50% 0 0;
+}
+.hero-greeting{
+  font-size:.85rem;font-weight:500;
+  color:rgba(255,255,255,.5);
+  letter-spacing:.05em;text-transform:uppercase;
+  margin-bottom:4px;
+}
+.hero-name{
+  font-size:1.7rem;font-weight:800;color:#fff;
+  line-height:1.1;margin-bottom:6px;
+}
+.hero-name span{color:var(--dorado)}
+.hero-date{
+  font-size:.9rem;color:rgba(255,255,255,.6);
+  margin-bottom:20px;
+}
+.hero-stats{
+  display:flex;gap:12px;position:relative;z-index:1;
+}
+.hero-stat{
+  flex:1;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:14px;
+  backdrop-filter:blur(10px);
+}
+.hero-stat-num{
+  font-size:1.6rem;font-weight:800;
+  color:var(--dorado);line-height:1;
+}
+.hero-stat-label{
+  font-size:.72rem;color:rgba(255,255,255,.5);
+  font-weight:500;margin-top:3px;
+}
+
+/* Day Selector */
+.day-selector-wrap{
+  padding:20px 0 8px;
+  background:var(--alabaster);
+}
+.day-selector-label{
+  font-size:.75rem;font-weight:600;color:var(--roble);
+  text-transform:uppercase;letter-spacing:.08em;
+  padding:0 20px;margin-bottom:12px;
+}
+.day-selector{
+  display:flex;gap:8px;
+  padding:0 20px;
+  overflow-x:auto;scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+.day-selector::-webkit-scrollbar{display:none}
+.day-pill{
+  flex-shrink:0;padding:10px 18px;border-radius:50px;
+  border:1.5px solid var(--arena);background:transparent;
+  color:var(--roble);font-family:'Poppins',sans-serif;
+  font-size:.82rem;font-weight:500;cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+}
+.day-pill:hover{border-color:var(--dorado);color:var(--cobre)}
+.day-pill.active{
+  background:var(--dorado);border-color:var(--dorado);
+  color:var(--black);font-weight:700;
+  box-shadow:0 4px 16px rgba(201,169,110,.35);
+}
+.day-pill.today-pill::after{
+  content:'•';display:inline-block;
+  margin-left:5px;color:var(--cobre);font-size:1rem;line-height:0;vertical-align:middle;
+}
+.day-pill.active.today-pill::after{color:rgba(26,20,16,.5)}
+.day-pill.no-doctors{opacity:.4}
+
+/* Schedule */
+.schedule-wrap{padding:20px}
+.schedule-title{
+  font-size:1rem;font-weight:700;color:var(--black);
+  margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;
+}
+.schedule-count{
+  font-size:.75rem;font-weight:600;
+  background:var(--lino);color:var(--roble);
+  padding:4px 10px;border-radius:20px;
+}
+
+.doctor-card{
+  background:#fff;
+  border:1px solid var(--lino);
+  border-radius:20px;
+  padding:18px;
+  margin-bottom:14px;
+  box-shadow:0 2px 16px rgba(44,36,32,.06);
+  transition:transform .2s,box-shadow .2s;
+  animation:cardIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.doctor-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(44,36,32,.1)}
+@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
+.doctor-card-header{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.doctor-avatar{
+  width:48px;height:48px;border-radius:16px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--dorado),var(--cobre));
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;font-weight:800;color:var(--black);
+  letter-spacing:-.02em;
+}
+.doctor-info{flex:1;min-width:0}
+.doctor-name{
+  font-size:.95rem;font-weight:700;color:var(--black);
+  line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.doctor-service{
+  font-size:.72rem;font-weight:600;
+  padding:3px 8px;border-radius:6px;
+  background:var(--espresso);color:var(--arena);
+  display:inline-block;margin-top:4px;letter-spacing:.02em;
+}
+.doctor-service.demanda{background:var(--cobre);color:var(--alabaster)}
+
+.turno-list{display:flex;flex-direction:column;gap:8px}
+.turno-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:12px;
+  background:var(--alabaster);
+  border:1px solid var(--lino);
+}
+.turno-time{
+  display:flex;align-items:center;gap:5px;
+  font-size:.88rem;font-weight:700;color:var(--black);
+  white-space:nowrap;
+}
+.turno-time svg{color:var(--roble);flex-shrink:0}
+.turno-sep{flex:1;height:1px;background:var(--arena);margin:0 4px}
+.turno-badges{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+
+.badge{
+  font-size:.68rem;font-weight:600;
+  padding:3px 8px;border-radius:6px;white-space:nowrap;
+}
+.badge-indistinto{background:var(--lino);color:var(--cobre)}
+.badge-ulterior{background:var(--arena);color:var(--espresso)}
+.badge-practicas{background:var(--espresso);color:var(--arena)}
+.badge-practica{background:var(--dorado);color:var(--black)}
+.badge-duracion{
+  background:transparent;color:var(--roble);
+  border:1px solid var(--arena);
+  font-size:.65rem;
+}
+
+.empty-state{
+  text-align:center;padding:48px 20px;
+  animation:cardIn .4s ease both;
+}
+.empty-icon{margin-bottom:16px;opacity:.4;display:flex;justify-content:center}
+.empty-title{font-size:1.1rem;font-weight:700;color:var(--espresso);margin-bottom:6px}
+.empty-sub{font-size:.85rem;color:var(--roble);line-height:1.5}
+
+/* ── DOCTORS PAGE ── */
+.doctors-page-header{
+  background:linear-gradient(135deg,var(--black),var(--espresso));
+  padding:24px 20px 28px;
+  position:relative;overflow:hidden;
+}
+.doctors-page-header::after{
+  content:'';position:absolute;
+  bottom:-20px;left:-5%;right:-5%;
+  height:40px;background:var(--alabaster);
+  border-radius:50% 50% 0 0;
+}
+.doctors-page-title{
+  font-size:1.5rem;font-weight:800;color:#fff;
+  margin-bottom:4px;
+}
+.doctors-page-sub{font-size:.85rem;color:rgba(255,255,255,.5)}
+
+.doctors-toolbar{
+  padding:20px 20px 12px;
+  display:flex;gap:10px;align-items:center;
+}
+.search-input-wrap{
+  flex:1;position:relative;
+}
+.search-input-wrap svg{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  color:var(--roble);pointer-events:none;
+}
+.search-input{
+  width:100%;padding:10px 12px 10px 38px;
+  border:1.5px solid var(--arena);border-radius:12px;
+  background:#fff;color:var(--black);
+  font-family:'Poppins',sans-serif;font-size:.88rem;
+  outline:none;transition:border-color .2s;
+}
+.search-input:focus{border-color:var(--dorado)}
+
+.upload-btn{
+  padding:10px 16px;border-radius:12px;border:1.5px solid var(--arena);
+  background:#fff;color:var(--roble);
+  font-family:'Poppins',sans-serif;font-size:.82rem;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;gap:6px;
+  white-space:nowrap;transition:all .2s;
+}
+.upload-btn:hover{border-color:var(--dorado);color:var(--cobre)}
+
+.doctors-grid{
+  padding:8px 20px;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+}
+@media(min-width:600px){.doctors-grid{grid-template-columns:repeat(3,1fr)}}
+
+.doc-mgmt-card{
+  background:#fff;border:1px solid var(--lino);
+  border-radius:18px;padding:16px;
+  box-shadow:0 2px 12px rgba(44,36,32,.05);
+  animation:cardIn .4s ease both;
+}
+.doc-mgmt-avatar{
+  width:44px;height:44px;border-radius:14px;
+  background:linear-gradient(135deg,var(--dorado),var(--cobre));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.95rem;font-weight:800;color:var(--black);
+  margin-bottom:10px;
+}
+.doc-mgmt-name{
+  font-size:.82rem;font-weight:700;color:var(--black);
+  line-height:1.3;margin-bottom:4px;
+}
+.doc-mgmt-service{
+  font-size:.65rem;font-weight:600;
+  padding:2px 7px;border-radius:5px;
+  background:var(--espresso);color:var(--arena);
+  display:inline-block;margin-bottom:8px;
+}
+.doc-mgmt-service.demanda{background:var(--cobre)}
+.doc-mgmt-days{
+  font-size:.72rem;color:var(--roble);
+  display:flex;align-items:center;gap:4px;margin-bottom:10px;
+}
+.doc-mgmt-actions{display:flex;gap:6px}
+.btn-edit,.btn-del{
+  flex:1;padding:7px 0;border-radius:9px;border:none;
+  font-family:'Poppins',sans-serif;font-size:.72rem;font-weight:600;
+  cursor:pointer;transition:all .2s;
+}
+.btn-edit{background:var(--lino);color:var(--cobre)}
+.btn-edit:hover{background:var(--dorado);color:var(--black)}
+.btn-del{background:#fff2f0;color:#e05252}
+.btn-del:hover{background:#fde8e8}
+
+/* ── FAB ── */
+.fab{
+  position:fixed;right:20px;
+  bottom:calc(76px + var(--safe-bottom));
+  width:56px;height:56px;border-radius:18px;border:none;
+  background:linear-gradient(135deg,var(--dorado),var(--cobre));
+  color:var(--black);font-size:1.5rem;cursor:pointer;
+  box-shadow:0 8px 24px rgba(201,169,110,.4);
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .2s,box-shadow .2s;z-index:90;
+}
+.fab:active{transform:scale(.92)}
+.fab.hidden{display:none}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(26,20,16,.6);
+  backdrop-filter:blur(4px);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-sheet{
+  width:100%;max-width:500px;
+  background:var(--alabaster);
+  border-radius:28px 28px 0 0;
+  padding:0 0 calc(20px + var(--safe-bottom));
+  max-height:90vh;overflow-y:auto;
+  transform:translateY(30px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-overlay.open .modal-sheet{transform:none}
+.modal-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:var(--arena);margin:14px auto 0;
+}
+.modal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 0;
+}
+.modal-title{font-size:1.1rem;font-weight:700;color:var(--black)}
+.modal-close{
+  width:32px;height:32px;border-radius:50%;border:none;
+  background:var(--lino);color:var(--roble);
+  font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.modal-body{padding:20px}
+
+.form-group{margin-bottom:16px}
+.form-label{
+  font-size:.78rem;font-weight:600;color:var(--roble);
+  text-transform:uppercase;letter-spacing:.06em;
+  margin-bottom:6px;display:block;
+}
+.form-input,.form-select{
+  width:100%;padding:11px 14px;
+  border:1.5px solid var(--arena);border-radius:12px;
+  background:#fff;color:var(--black);
+  font-family:'Poppins',sans-serif;font-size:.9rem;
+  outline:none;transition:border-color .2s;
+}
+.form-input:focus,.form-select:focus{border-color:var(--dorado)}
+
+.turno-editor{
+  background:#fff;border:1px solid var(--lino);
+  border-radius:14px;padding:14px;margin-bottom:10px;
+  position:relative;
+}
+.turno-editor-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;
+}
+.turno-editor-row-3{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+}
+.btn-remove-turno{
+  position:absolute;top:10px;right:10px;
+  width:24px;height:24px;border-radius:50%;border:none;
+  background:#fde8e8;color:#e05252;font-size:1rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  line-height:1;
+}
+.btn-add-turno{
+  width:100%;padding:10px;border-radius:12px;
+  border:1.5px dashed var(--arena);background:transparent;
+  color:var(--roble);font-family:'Poppins',sans-serif;
+  font-size:.85rem;font-weight:600;cursor:pointer;
+  transition:all .2s;margin-bottom:16px;
+}
+.btn-add-turno:hover{border-color:var(--dorado);color:var(--cobre)}
+
+.modal-actions{display:flex;gap:10px;margin-top:4px}
+.btn-primary{
+  flex:1;padding:13px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--dorado),var(--cobre));
+  color:var(--black);font-family:'Poppins',sans-serif;
+  font-size:.9rem;font-weight:700;cursor:pointer;
+  transition:transform .15s;
+}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary-out{
+  padding:13px 20px;border-radius:12px;
+  border:1.5px solid var(--arena);background:transparent;
+  color:var(--roble);font-family:'Poppins',sans-serif;
+  font-size:.9rem;font-weight:600;cursor:pointer;
+  transition:all .2s;
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:var(--black);
+  border-top:1px solid rgba(201,169,110,.15);
+  padding:8px 0 calc(8px + var(--safe-bottom));
+  display:flex;
+  box-shadow:0 -4px 30px rgba(0,0,0,.3);
+}
+.bottom-nav-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 0;border:none;background:transparent;
+  color:rgba(255,255,255,.35);cursor:pointer;
+  font-family:'Poppins',sans-serif;font-size:.65rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.05em;transition:all .2s;
+}
+.bottom-nav-tab svg{transition:all .2s}
+.bottom-nav-tab.active{color:var(--dorado)}
+.bottom-nav-tab.active svg{filter:drop-shadow(0 0 6px rgba(201,169,110,.5))}
+
+/* ── UPLOAD SECTION ── */
+.upload-section{
+  margin:0 20px 20px;
+  border:2px dashed var(--arena);border-radius:18px;
+  padding:24px;text-align:center;
+  background:#fff;transition:all .2s;cursor:pointer;
+}
+.upload-section:hover,.upload-section.dragover{
+  border-color:var(--dorado);background:rgba(201,169,110,.05);
+}
+.upload-section p{font-size:.85rem;color:var(--roble);margin-top:8px}
+.upload-section strong{color:var(--cobre)}
+
+/* ── CONFIRM DIALOG ── */
+.confirm-overlay{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(26,20,16,.7);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.confirm-overlay.open{opacity:1;pointer-events:all}
+.confirm-box{
+  background:var(--alabaster);border-radius:20px;
+  padding:28px 24px;max-width:320px;width:100%;
+  text-align:center;
+  transform:scale(.9);transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.confirm-overlay.open .confirm-box{transform:none}
+.confirm-box h3{font-size:1.1rem;font-weight:700;color:var(--black);margin-bottom:8px}
+.confirm-box p{font-size:.85rem;color:var(--roble);line-height:1.5;margin-bottom:20px}
+.confirm-actions{display:flex;gap:10px}
+.btn-danger{
+  flex:1;padding:12px;border-radius:11px;border:none;
+  background:#e05252;color:#fff;
+  font-family:'Poppins',sans-serif;font-size:.9rem;font-weight:700;
+  cursor:pointer;
+}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:calc(90px + var(--safe-bottom));left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--espresso);color:#fff;
+  padding:10px 20px;border-radius:50px;
+  font-size:.82rem;font-weight:600;
+  white-space:nowrap;z-index:500;
+  opacity:0;transition:all .25s;pointer-events:none;
+  border:1px solid rgba(201,169,110,.2);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── INSTALL BANNER ── */
+.install-banner{
+  margin:16px 20px 0;
+  background:linear-gradient(135deg,var(--espresso),var(--black));
+  border:1px solid rgba(201,169,110,.2);
+  border-radius:16px;padding:14px 16px;
+  display:none;align-items:center;gap:12px;
+}
+.install-banner.show{display:flex}
+.install-banner-text{flex:1;font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.4}
+.install-banner-text strong{color:#fff;display:block}
+.install-banner-btn{
+  padding:8px 14px;border-radius:10px;border:none;
+  background:var(--dorado);color:var(--black);
+  font-family:'Poppins',sans-serif;font-size:.8rem;font-weight:700;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+}
+
+/* ── UTILITY ── */
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════ ONBOARDING ════════════════════════════ -->
+<div id="onboarding">
+  <img class="ob-logo" src="https://dcdn-us.mitiendanube.com/stores/005/247/050/themes/common/logo-1796149085-1731459126-0c336543fa2133770fe42e939e46e2031731459126-480-0.webp" alt="Black Optica" />
+
+  <div class="ob-progress" id="ob-progress">
+    <div class="ob-dot active"></div>
+    <div class="ob-dot"></div>
+    <div class="ob-dot"></div>
+    <div class="ob-dot"></div>
+  </div>
+
+  <!-- Card 1: Nombre -->
+  <div class="ob-card active" id="ob-card-1">
+    <div class="ob-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--black)"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></div>
+    <h2>¡Bienvenido a<br/>Black Optica!</h2>
+    <p>Antes de arrancar, ¿cómo preferís que te llamemos?</p>
+    <input class="ob-input" id="ob-name-input" type="text" placeholder="Tu nombre..." autocomplete="off" maxlength="30" />
+    <button class="ob-btn" id="ob-btn-1">Continuar →</button>
+  </div>
+
+  <!-- Card 2: Funciones -->
+  <div class="ob-card" id="ob-card-2">
+    <div class="ob-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--black)"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    <h2>Tu agenda de<br/>oftalmólogos</h2>
+    <p>Con esta app vas a poder:</p>
+    <div class="ob-feature">
+      <div class="ob-feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--dorado)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="ob-feature-text"><strong>Ver el cronograma del día</strong>Consultá qué oftalmólogos atienden hoy y en qué horarios.</div>
+    </div>
+    <div class="ob-feature">
+      <div class="ob-feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--dorado)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="ob-feature-text"><strong>Gestionar profesionales</strong>Agregá, editá o eliminá oftalmólogos y sus turnos.</div>
+    </div>
+    <div class="ob-feature" style="margin-bottom:20px">
+      <div class="ob-feature-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--dorado)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+      <div class="ob-feature-text"><strong>Carga masiva desde Excel</strong>Importá un .xlsx para actualizar la lista completa.</div>
+    </div>
+    <button class="ob-btn" id="ob-btn-2">Entendido →</button>
+  </div>
+
+  <!-- Card 3: Instalar -->
+  <div class="ob-card" id="ob-card-3">
+    <div class="ob-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--black)"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
+    <h2>Agregala a tu pantalla de inicio</h2>
+    <p id="ob-install-desc">Usala como una app nativa, sin abrir el navegador.</p>
+    <div id="ob-ios-steps">
+      <div class="ob-platform-badge ios"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg> iPhone / iPad</div>
+      <div class="ob-install-step">
+        <div class="ob-step-num">1</div>
+        <div class="ob-step-text">Tocá el botón <strong>Compartir</strong> (el cuadrado con la flechita ↑) en Safari.</div>
+      </div>
+      <div class="ob-install-step">
+        <div class="ob-step-num">2</div>
+        <div class="ob-step-text">Deslizá y tocá <strong>"Agregar a pantalla de inicio"</strong>.</div>
+      </div>
+      <div class="ob-install-step">
+        <div class="ob-step-num">3</div>
+        <div class="ob-step-text">Confirmá tocando <strong>"Agregar"</strong> arriba a la derecha. ¡Listo!</div>
+      </div>
+    </div>
+    <div id="ob-android-steps" style="display:none">
+      <div class="ob-platform-badge android"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.75-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg> Android</div>
+      <div class="ob-install-step">
+        <div class="ob-step-num">1</div>
+        <div class="ob-step-text">Tocá el menú <strong>⋮ (tres puntos)</strong> de Chrome, arriba a la derecha.</div>
+      </div>
+      <div class="ob-install-step">
+        <div class="ob-step-num">2</div>
+        <div class="ob-step-text">Seleccioná <strong>"Agregar a pantalla de inicio"</strong> o <strong>"Instalar app"</strong>.</div>
+      </div>
+      <div class="ob-install-step">
+        <div class="ob-step-num">3</div>
+        <div class="ob-step-text">Confirmá en el diálogo. ¡La app aparece en tu inicio!</div>
+      </div>
+    </div>
+    <div id="ob-desktop-msg" style="display:none;font-size:.82rem;color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:20px">
+      En desktop podés instalarla desde el ícono de instalación que aparece en la barra del navegador (una pantalla con una flecha hacia abajo).
+    </div>
+    <button class="ob-btn" id="ob-btn-3">Ya está, ¡genial! →</button>
+    <button class="ob-btn-secondary" id="ob-btn-3-skip">Ahora no</button>
+  </div>
+
+  <!-- Card 4: Ready -->
+  <div class="ob-card" id="ob-card-4">
+    <div class="ob-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--black)"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <h2 id="ob-ready-title">¡Todo listo!</h2>
+    <p id="ob-ready-sub">Ya podés empezar a usar tu cronograma de visitas a oftalmólogos.</p>
+    <div style="background:rgba(201,169,110,.1);border:1px solid rgba(201,169,110,.2);border-radius:14px;padding:16px;margin-bottom:20px">
+      <div style="font-size:.82rem;color:rgba(255,255,255,.6);line-height:2">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--dorado)" stroke-width="2.5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> <strong style="color:#fff">Cronograma</strong> → Ves el día de hoy</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--dorado)" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> <strong style="color:#fff">Oftalmólogos</strong> → Gestionás la lista</div>
+        <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--dorado)" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <strong style="color:#fff">Chips de días</strong> → Cambiás el día consultado</div>
+      </div>
+    </div>
+    <button class="ob-btn" id="ob-btn-4">Empezar a visitar</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════ APP ════════════════════════════ -->
+<div id="app">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <img class="navbar-logo" src="https://dcdn-us.mitiendanube.com/stores/005/247/050/themes/common/logo-1796149085-1731459126-0c336543fa2133770fe42e939e46e2031731459126-480-0.webp" alt="Black Optica" />
+    <div class="navbar-right">
+      <div class="nav-tabs" id="desktop-tabs">
+        <button class="nav-tab active" onclick="showPage('home')">Cronograma</button>
+        <button class="nav-tab" onclick="showPage('doctors')">Oftalmólogos</button>
+      </div>
+      <div class="user-chip" onclick="editUserName()" title="Editar nombre">
+        <div class="user-avatar" id="nav-avatar">?</div>
+        <span class="user-name" id="nav-username">Usuario</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HOME PAGE -->
+  <div class="page active" id="page-home">
+
+    <!-- Banner instalar PWA -->
+    <div class="install-banner" id="install-banner">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--dorado)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><polyline points="12 18 12 18"/><line x1="12" y1="12" x2="12" y2="16"/><polyline points="9 15 12 18 15 15"/></svg>
+      <div class="install-banner-text">
+        <strong>Instalá la app</strong>
+        Accedé más rápido desde tu pantalla de inicio
+      </div>
+      <button class="install-banner-btn" id="install-btn">Instalar</button>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero-section">
+      <div class="hero-greeting" id="hero-greeting">Buenos días</div>
+      <div class="hero-name" id="hero-name">Hola, <span id="hero-username">!</span></div>
+      <div class="hero-date" id="hero-date">Cargando...</div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="stat-docs">0</div>
+          <div class="hero-stat-label">Oftalmólogos hoy</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="stat-shifts">0</div>
+          <div class="hero-stat-label">Bloques horarios</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="stat-turns">0</div>
+          <div class="hero-stat-label">Turnos aprox.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day Selector -->
+    <div class="day-selector-wrap">
+      <div class="day-selector-label">Seleccioná el día</div>
+      <div class="day-selector" id="day-selector"></div>
+    </div>
+
+    <!-- Schedule -->
+    <div class="schedule-wrap">
+      <div class="schedule-title">
+        <span id="schedule-day-label">Hoy</span>
+        <span class="schedule-count" id="schedule-count">0 profesionales</span>
+      </div>
+      <div id="schedule-list"></div>
+    </div>
+  </div>
+
+  <!-- DOCTORS PAGE -->
+  <div class="page" id="page-doctors">
+    <div class="doctors-page-header">
+      <div class="doctors-page-title">Oftalmólogos</div>
+      <div class="doctors-page-sub" id="doctors-count-label">Cargando...</div>
+    </div>
+
+    <div class="doctors-toolbar">
+      <div class="search-input-wrap">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="search-input" id="search-input" type="search" placeholder="Buscar profesional..." oninput="renderDoctorsList()" />
+      </div>
+      <button class="upload-btn" onclick="openUploadModal()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Importar
+      </button>
+    </div>
+
+    <div class="doctors-grid" id="doctors-grid"></div>
+  </div>
+
+</div>
+
+<!-- ── FAB ── -->
+<button class="fab hidden" id="fab" onclick="openDoctorModal(null)">
+  <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</button>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bottom-nav-tab active" id="bnav-home" onclick="showPage('home')">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Cronograma
+  </button>
+  <button class="bottom-nav-tab" id="bnav-doctors" onclick="showPage('doctors')">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Oftalmólogos
+  </button>
+</nav>
+
+<!-- ── MODAL DOCTOR ── -->
+<div class="modal-overlay" id="modal-doctor">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="modal-doctor-title">Nuevo oftalmólogo</span>
+      <button class="modal-close" onclick="closeModal('modal-doctor')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-doctor-id" />
+      <div class="form-group">
+        <label class="form-label">Nombre completo</label>
+        <input class="form-input" id="input-nombre" type="text" placeholder="Apellido, Nombre" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Servicio</label>
+        <select class="form-select" id="input-servicio">
+          <option value="OFTALMOLOGIA-JR">OFTALMOLOGIA-JR</option>
+          <option value="DEMANDA DE OFTALMOLOGIA-JR">DEMANDA DE OFTALMOLOGIA-JR</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Turnos</label>
+        <div id="turnos-container"></div>
+        <button class="btn-add-turno" onclick="addTurnoRow()">+ Agregar turno</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary-out" onclick="closeModal('modal-doctor')">Cancelar</button>
+        <button class="btn-primary" onclick="saveDoctor()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL UPLOAD ── -->
+<div class="modal-overlay" id="modal-upload">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title">Importar desde Excel</span>
+      <button class="modal-close" onclick="closeModal('modal-upload')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-section" id="upload-dropzone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleFileDrop(event)">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--arena)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <p><strong>Tocá para seleccionar</strong> o arrastrá un archivo .xlsx</p>
+        <p style="font-size:.75rem;margin-top:4px;opacity:.7">El archivo debe tener las columnas: Profesional, Servicio, Día, Tipo de Turno, Desde, Hasta, Duración (min)</p>
+      </div>
+      <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none" onchange="handleFileInput(event)" />
+
+      <div id="upload-preview" style="display:none">
+        <div style="font-size:.85rem;font-weight:600;color:var(--black);margin-bottom:10px" id="preview-title">Vista previa</div>
+        <div style="background:#fff;border:1px solid var(--lino);border-radius:12px;padding:12px;max-height:180px;overflow-y:auto;font-size:.78rem;color:var(--roble);line-height:1.8" id="preview-content"></div>
+        <div style="margin-top:14px;font-size:.82rem;font-weight:600;color:var(--black);margin-bottom:10px">¿Qué hacemos con la lista actual?</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <label style="flex:1;padding:11px;border:1.5px solid var(--arena);border-radius:11px;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--roble);text-align:center;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px" id="opt-add" onclick="selectImportMode('add')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Agregar a la lista
+          </label>
+          <label style="flex:1;padding:11px;border:1.5px solid var(--arena);border-radius:11px;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--roble);text-align:center;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px" id="opt-replace" onclick="selectImportMode('replace')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.66"/></svg> Reemplazar todo
+          </label>
+        </div>
+        <button class="btn-primary" onclick="confirmImport()">Confirmar importación</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM DIALOG ── -->
+<div class="confirm-overlay" id="confirm-dialog">
+  <div class="confirm-box">
+    <h3 id="confirm-title">¿Confirmás?</h3>
+    <p id="confirm-msg">Esta acción no se puede deshacer.</p>
+    <div class="confirm-actions">
+      <button class="btn-secondary-out" style="flex:1" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn-danger" id="confirm-ok-btn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════
+const INITIAL_DOCTORS = [
+  {id:"ibañez-agustina",nombre:"Ibañez, Agustina",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Lunes",tipo:"Indistinto",desde:"14:00",hasta:"17:00",duracion:15},
+    {dia:"Lunes",tipo:"Ulterior / Control",desde:"17:00",hasta:"17:30",duracion:15},
+    {dia:"Martes",tipo:"Indistinto",desde:"08:00",hasta:"12:00",duracion:15},
+    {dia:"Martes",tipo:"Ulterior / Control",desde:"12:00",hasta:"12:30",duracion:15},
+    {dia:"Jueves",tipo:"Indistinto",desde:"08:00",hasta:"12:00",duracion:15},
+    {dia:"Jueves",tipo:"Ulterior / Control",desde:"12:00",hasta:"12:30",duracion:15}
+  ]},
+  {id:"zurita-melina",nombre:"Zurita Padro, Melina Beatriz",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Miércoles",tipo:"Indistinto",desde:"09:00",hasta:"13:00",duracion:15},
+    {dia:"Jueves",tipo:"Práctica",desde:"09:00",hasta:"13:00",duracion:10},
+    {dia:"Viernes",tipo:"Indistinto",desde:"12:00",hasta:"17:15",duracion:15}
+  ]},
+  {id:"osaba-matias",nombre:"Osaba, Matias",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Miércoles",tipo:"Indistinto",desde:"09:20",hasta:"13:20",duracion:15},
+    {dia:"Miércoles",tipo:"Ulterior / Control",desde:"13:20",hasta:"14:20",duracion:15},
+    {dia:"Sábado",tipo:"Indistinto",desde:"08:00",hasta:"11:00",duracion:15},
+    {dia:"Sábado",tipo:"Indistinto",desde:"11:00",hasta:"12:00",duracion:15}
+  ]},
+  {id:"gonzalez-eugenia",nombre:"González Castellanos, María Eugenia",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Lunes",tipo:"Indistinto",desde:"14:00",hasta:"18:30",duracion:15},
+    {dia:"Martes",tipo:"Indistinto",desde:"13:45",hasta:"18:00",duracion:15}
+  ]},
+  {id:"dalmagro-juan",nombre:"Dalmagro, Juan Antonio",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Martes",tipo:"Indistinto",desde:"08:20",hasta:"09:20",duracion:20},
+    {dia:"Martes",tipo:"Ulterior / Control",desde:"09:20",hasta:"10:00",duracion:20},
+    {dia:"Miércoles",tipo:"Indistinto",desde:"14:30",hasta:"17:10",duracion:20},
+    {dia:"Miércoles",tipo:"Ulterior / Control",desde:"17:10",hasta:"18:10",duracion:20}
+  ]},
+  {id:"gonzalez-ines",nombre:"González Castellanos, Maria Inés",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Lunes",tipo:"Indistinto con prácticas",desde:"16:00",hasta:"19:00",duracion:15},
+    {dia:"Jueves",tipo:"Indistinto con prácticas",desde:"14:00",hasta:"18:00",duracion:15},
+    {dia:"Viernes",tipo:"Indistinto",desde:"14:00",hasta:"18:00",duracion:15}
+  ]},
+  {id:"holgado-camila",nombre:"Holgado Herrera, Maria Camila",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Miércoles",tipo:"Indistinto",desde:"12:00",hasta:"17:30",duracion:15},
+    {dia:"Miércoles",tipo:"Ulterior / Control",desde:"17:30",hasta:"18:30",duracion:15}
+  ]},
+  {id:"muñoz-agustina",nombre:"Muñoz, Agustina Gabriela",servicio:"DEMANDA DE OFTALMOLOGIA-JR",turnos:[
+    {dia:"Martes",tipo:"Indistinto",desde:"10:00",hasta:"13:00",duracion:30},
+    {dia:"Miércoles",tipo:"Indistinto",desde:"14:00",hasta:"16:00",duracion:30},
+    {dia:"Jueves",tipo:"Indistinto",desde:"14:00",hasta:"18:00",duracion:30}
+  ]},
+  {id:"lopez-giordano-paula",nombre:"Lopez Giordano, Paula Beatriz",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Martes",tipo:"Indistinto",desde:"08:40",hasta:"12:20",duracion:20},
+    {dia:"Martes",tipo:"Indistinto",desde:"14:00",hasta:"17:00",duracion:20},
+    {dia:"Jueves",tipo:"Indistinto",desde:"08:40",hasta:"12:20",duracion:20},
+    {dia:"Jueves",tipo:"Indistinto",desde:"14:00",hasta:"17:00",duracion:20}
+  ]},
+  {id:"monti-jose",nombre:"Monti, Jose Rodolfo",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Lunes",tipo:"Indistinto",desde:"08:30",hasta:"11:30",duracion:20},
+    {dia:"Lunes",tipo:"Ulterior / Control",desde:"11:30",hasta:"12:30",duracion:20},
+    {dia:"Lunes",tipo:"Indistinto",desde:"13:30",hasta:"15:15",duracion:15},
+    {dia:"Lunes",tipo:"Ulterior / Control",desde:"15:15",hasta:"16:15",duracion:15},
+    {dia:"Martes",tipo:"Indistinto",desde:"08:30",hasta:"11:30",duracion:20},
+    {dia:"Martes",tipo:"Ulterior / Control",desde:"11:30",hasta:"12:30",duracion:20},
+    {dia:"Martes",tipo:"Indistinto",desde:"13:30",hasta:"15:15",duracion:15},
+    {dia:"Martes",tipo:"Ulterior / Control",desde:"15:15",hasta:"16:15",duracion:15}
+  ]},
+  {id:"maccio-juan",nombre:"Maccio, Juan Pablo",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Lunes",tipo:"Indistinto con prácticas",desde:"08:40",hasta:"12:00",duracion:20},
+    {dia:"Martes",tipo:"Indistinto con prácticas",desde:"14:00",hasta:"17:00",duracion:20},
+    {dia:"Martes",tipo:"Ulterior / Control",desde:"17:00",hasta:"18:00",duracion:20},
+    {dia:"Jueves",tipo:"Indistinto con prácticas",desde:"09:40",hasta:"12:00",duracion:20},
+    {dia:"Jueves",tipo:"Ulterior / Control",desde:"12:00",hasta:"12:40",duracion:20},
+    {dia:"Jueves",tipo:"Indistinto con prácticas",desde:"14:00",hasta:"17:00",duracion:20},
+    {dia:"Jueves",tipo:"Ulterior / Control",desde:"17:00",hasta:"18:00",duracion:20},
+    {dia:"Viernes",tipo:"Indistinto con prácticas",desde:"08:40",hasta:"12:00",duracion:20}
+  ]},
+  {id:"monetto-agostina",nombre:"Monetto, Agostina",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Miércoles",tipo:"Indistinto",desde:"13:15",hasta:"16:00",duracion:15}
+  ]},
+  {id:"knoll-erna",nombre:"Knoll, Erna Gertrudis",servicio:"OFTALMOLOGIA-JR",turnos:[
+    {dia:"Lunes",tipo:"Indistinto",desde:"08:00",hasta:"12:00",duracion:20},
+    {dia:"Lunes",tipo:"Ulterior / Control",desde:"12:00",hasta:"13:00",duracion:20},
+    {dia:"Miércoles",tipo:"Indistinto con prácticas",desde:"08:00",hasta:"11:40",duracion:20},
+    {dia:"Miércoles",tipo:"Ulterior / Control",desde:"11:40",hasta:"12:40",duracion:20},
+    {dia:"Viernes",tipo:"Indistinto",desde:"08:00",hasta:"11:20",duracion:20},
+    {dia:"Viernes",tipo:"Ulterior / Control",desde:"11:20",hasta:"12:40",duracion:20}
+  ]},
+  {id:"lopez-emilio",nombre:"Lopez, Emilio",servicio:"DEMANDA DE OFTALMOLOGIA-JR",turnos:[
+    {dia:"Martes",tipo:"Indistinto",desde:"14:00",hasta:"16:00",duracion:30},
+    {dia:"Miércoles",tipo:"Indistinto",desde:"14:00",hasta:"16:00",duracion:30},
+    {dia:"Viernes",tipo:"Indistinto",desde:"14:00",hasta:"18:00",duracion:30}
+  ]}
+];
+
+const DIAS = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const TIPOS = ["Indistinto","Ulterior / Control","Indistinto con prácticas","Práctica"];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let doctors = [];
+let selectedDay = "";
+let importedData = [];
+let importMode = "add";
+let pendingDeleteId = null;
+let deferredInstallPrompt = null;
+
+function loadState() {
+  const saved = localStorage.getItem("blackoptica_doctors");
+  doctors = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(INITIAL_DOCTORS));
+}
+function saveState() {
+  localStorage.setItem("blackoptica_doctors", JSON.stringify(doctors));
+}
+function getUserName() { return localStorage.getItem("blackoptica_username") || ""; }
+function setUserName(n) { localStorage.setItem("blackoptica_username", n); }
+
+// ══════════════════════════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════════════════════════
+let currentObCard = 1;
+
+function detectPlatform() {
+  const ua = navigator.userAgent;
+  if (/iPad|iPhone|iPod/.test(ua)) return "ios";
+  if (/Android/.test(ua)) return "android";
+  return "desktop";
+}
+
+function initOnboarding() {
+  const platform = detectPlatform();
+  document.getElementById("ob-ios-steps").style.display = platform === "ios" ? "block" : "none";
+  document.getElementById("ob-android-steps").style.display = platform === "android" ? "block" : "none";
+  document.getElementById("ob-desktop-msg").style.display = platform === "desktop" ? "block" : "none";
+}
+
+function goObCard(n) {
+  document.getElementById(`ob-card-${currentObCard}`).classList.remove("active");
+  currentObCard = n;
+  document.getElementById(`ob-card-${n}`).classList.add("active");
+  // update progress
+  const dots = document.querySelectorAll(".ob-dot");
+  dots.forEach((d,i) => d.classList.toggle("active", i < n));
+}
+
+document.getElementById("ob-btn-1").onclick = () => {
+  const val = document.getElementById("ob-name-input").value.trim();
+  if (!val) { document.getElementById("ob-name-input").focus(); return; }
+  setUserName(val);
+  // update ready card
+  document.getElementById("ob-ready-title").textContent = `¡Todo listo, ${val}!`;
+  document.getElementById("ob-ready-sub").textContent = `Bienvenido/a a Black Optica. Ya podés empezar a consultar tu cronograma de visitas.`;
+  goObCard(2);
+};
+document.getElementById("ob-name-input").addEventListener("keydown", e => { if(e.key==="Enter") document.getElementById("ob-btn-1").click(); });
+document.getElementById("ob-btn-2").onclick = () => goObCard(3);
+document.getElementById("ob-btn-3").onclick = () => goObCard(4);
+document.getElementById("ob-btn-3-skip").onclick = () => goObCard(4);
+document.getElementById("ob-btn-4").onclick = () => {
+  localStorage.setItem("blackoptica_onboarding", "done");
+  const ob = document.getElementById("onboarding");
+  ob.classList.add("hiding");
+  setTimeout(() => { ob.style.display = "none"; startApp(); }, 400);
+};
+
+function checkOnboarding() {
+  if (localStorage.getItem("blackoptica_onboarding") === "done" && getUserName()) {
+    document.getElementById("onboarding").style.display = "none";
+    startApp();
+  } else {
+    initOnboarding();
+    // prefill name if somehow exists
+    const n = getUserName();
+    if (n) document.getElementById("ob-name-input").value = n;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// APP INIT
+// ══════════════════════════════════════════════════════
+function startApp() {
+  loadState();
+  document.getElementById("app").classList.add("visible");
+  updateNavUser();
+  const today = DIAS[new Date().getDay()];
+  selectedDay = today;
+  renderDaySelector();
+  renderSchedule();
+  renderHero();
+}
+
+function updateNavUser() {
+  const name = getUserName();
+  document.getElementById("nav-username").textContent = name || "Usuario";
+  document.getElementById("nav-avatar").textContent = name ? name[0].toUpperCase() : "?";
+}
+
+function editUserName() {
+  const cur = getUserName();
+  const val = prompt("¿Cómo querés que te llamemos?", cur);
+  if (val && val.trim()) {
+    setUserName(val.trim());
+    updateNavUser();
+    renderHero();
+    showToast("Nombre actualizado ✓");
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// HERO
+// ══════════════════════════════════════════════════════
+function renderHero() {
+  const now = new Date();
+  const h = now.getHours();
+  const greeting = h < 13 ? "Buenos días" : h < 20 ? "Buenas tardes" : "Buenas noches";
+  const name = getUserName();
+  const dayName = DIAS[now.getDay()];
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const dateStr = `${dayName}, ${now.getDate()} de ${meses[now.getMonth()]}`;
+
+  document.getElementById("hero-greeting").textContent = greeting + ",";
+  document.getElementById("hero-username").textContent = name ? name : "¡Bienvenido!";
+  document.getElementById("hero-date").textContent = dateStr;
+
+  const today = DIAS[now.getDay()];
+  const docsToday = getDoctorsForDay(today);
+  const totalBlocks = docsToday.reduce((acc, d) => acc + d.turnosDelDia.length, 0);
+  const totalTurns = docsToday.reduce((acc, d) => acc + d.turnosDelDia.reduce((a, t) => a + calcTurns(t), 0), 0);
+
+  document.getElementById("stat-docs").textContent = docsToday.length;
+  document.getElementById("stat-shifts").textContent = totalBlocks;
+  document.getElementById("stat-turns").textContent = totalTurns;
+}
+
+// ══════════════════════════════════════════════════════
+// DAY SELECTOR
+// ══════════════════════════════════════════════════════
+function renderDaySelector() {
+  const today = DIAS[new Date().getDay()];
+  const container = document.getElementById("day-selector");
+  // Order from Monday
+  const ordered = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+  container.innerHTML = ordered.map(d => {
+    const hasDocs = getDoctorsForDay(d).length > 0;
+    const isToday = d === today;
+    const isActive = d === selectedDay;
+    return `<button class="day-pill${isActive?" active":""}${isToday?" today-pill":""}${!hasDocs?" no-doctors":""}"
+      onclick="selectDay('${d}')">${d}</button>`;
+  }).join("");
+}
+
+function selectDay(d) {
+  selectedDay = d;
+  renderDaySelector();
+  renderSchedule();
+}
+
+// ══════════════════════════════════════════════════════
+// SCHEDULE
+// ══════════════════════════════════════════════════════
+function getDoctorsForDay(day) {
+  return doctors
+    .map(doc => ({
+      ...doc,
+      turnosDelDia: doc.turnos.filter(t => t.dia === day)
+    }))
+    .filter(doc => doc.turnosDelDia.length > 0)
+    .sort((a,b) => {
+      const aMin = Math.min(...a.turnosDelDia.map(t => timeToMin(t.desde)));
+      const bMin = Math.min(...b.turnosDelDia.map(t => timeToMin(t.desde)));
+      return aMin - bMin;
+    });
+}
+
+function timeToMin(t) {
+  const [h,m] = t.split(":").map(Number);
+  return h*60+m;
+}
+
+function calcTurns(turno) {
+  const mins = timeToMin(turno.hasta) - timeToMin(turno.desde);
+  return Math.max(1, Math.floor(mins / turno.duracion));
+}
+
+function badgeClass(tipo) {
+  if (tipo === "Ulterior / Control") return "badge-ulterior";
+  if (tipo === "Indistinto con prácticas") return "badge-practicas";
+  if (tipo === "Práctica") return "badge-practica";
+  return "badge-indistinto";
+}
+
+function initials(nombre) {
+  const parts = nombre.split(/[,\s]+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return nombre[0].toUpperCase();
+}
+
+function renderSchedule() {
+  const docsForDay = getDoctorsForDay(selectedDay);
+  const list = document.getElementById("schedule-list");
+  const count = document.getElementById("schedule-count");
+  const label = document.getElementById("schedule-day-label");
+
+  const today = DIAS[new Date().getDay()];
+  label.textContent = selectedDay === today ? `Hoy · ${selectedDay}` : selectedDay;
+  count.textContent = `${docsForDay.length} profesional${docsForDay.length !== 1 ? "es" : ""}`;
+
+  if (docsForDay.length === 0) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--arena)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="empty-title">Sin consultas programadas</div>
+      <div class="empty-sub">No hay oftalmólogos programados para el ${selectedDay}.<br/>Seleccioná otro día para ver el cronograma.</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = docsForDay.map((doc, idx) => {
+    const turnosHTML = doc.turnosDelDia.map(t => {
+      const turns = calcTurns(t);
+      return `<div class="turno-row">
+        <div class="turno-time">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${t.desde}
+        </div>
+        <div style="font-size:.78rem;color:var(--roble);font-weight:500">→</div>
+        <div class="turno-time">${t.hasta}</div>
+        <div class="turno-sep"></div>
+        <div class="turno-badges">
+          <span class="badge ${badgeClass(t.tipo)}">${t.tipo}</span>
+          <span class="badge badge-duracion">${t.duracion} min · ~${turns} turnos</span>
+        </div>
+      </div>`;
+    }).join("");
+
+    const isDemanda = doc.servicio.includes("DEMANDA");
+    return `<div class="doctor-card" style="animation-delay:${idx*60}ms">
+      <div class="doctor-card-header">
+        <div class="doctor-avatar">${initials(doc.nombre)}</div>
+        <div class="doctor-info">
+          <div class="doctor-name">${doc.nombre}</div>
+          <span class="doctor-service${isDemanda?" demanda":""}">${doc.servicio}</span>
+        </div>
+      </div>
+      <div class="turno-list">${turnosHTML}</div>
+    </div>`;
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════
+function showPage(page) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".bottom-nav-tab").forEach(t => t.classList.remove("active"));
+
+  document.getElementById(`page-${page}`).classList.add("active");
+  document.getElementById(`bnav-${page}`).classList.add("active");
+
+  const tabs = document.querySelectorAll(".nav-tab");
+  if (page === "home") { tabs[0].classList.add("active"); document.getElementById("fab").classList.add("hidden"); }
+  else { tabs[1].classList.add("active"); document.getElementById("fab").classList.remove("hidden"); }
+
+  if (page === "doctors") renderDoctorsList();
+}
+
+// ══════════════════════════════════════════════════════
+// DOCTORS LIST
+// ══════════════════════════════════════════════════════
+function renderDoctorsList() {
+  const query = (document.getElementById("search-input")?.value || "").toLowerCase();
+  const filtered = doctors.filter(d => d.nombre.toLowerCase().includes(query));
+
+  document.getElementById("doctors-count-label").textContent = `${filtered.length} profesionales en lista`;
+
+  const grid = document.getElementById("doctors-grid");
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1"><div class="empty-state">
+      <div class="empty-icon"><svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--arena)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+      <div class="empty-title">Sin resultados</div>
+      <div class="empty-sub">No hay profesionales que coincidan con la búsqueda.</div>
+    </div></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map((doc, idx) => {
+    const dias = [...new Set(doc.turnos.map(t => t.dia))];
+    const isDemanda = doc.servicio.includes("DEMANDA");
+    return `<div class="doc-mgmt-card" style="animation-delay:${idx*40}ms">
+      <div class="doc-mgmt-avatar">${initials(doc.nombre)}</div>
+      <div class="doc-mgmt-name">${doc.nombre}</div>
+      <span class="doc-mgmt-service${isDemanda?" demanda":""}">${doc.servicio === "OFTALMOLOGIA-JR" ? "OFT-JR" : "DEMANDA"}</span>
+      <div class="doc-mgmt-days">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        ${dias.length} día${dias.length!==1?"s":""} por semana
+      </div>
+      <div class="doc-mgmt-actions">
+        <button class="btn-edit" onclick="openDoctorModal('${doc.id}')" style="display:flex;align-items:center;justify-content:center;gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar</button>
+        <button class="btn-del" onclick="deleteDoctor('${doc.id}')" style="display:flex;align-items:center;justify-content:center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ══════════════════════════════════════════════════════
+// DOCTOR MODAL (add / edit)
+// ══════════════════════════════════════════════════════
+function openDoctorModal(id) {
+  const modal = document.getElementById("modal-doctor");
+  const doctor = id ? doctors.find(d => d.id === id) : null;
+
+  document.getElementById("modal-doctor-title").textContent = doctor ? "Editar oftalmólogo" : "Nuevo oftalmólogo";
+  document.getElementById("edit-doctor-id").value = id || "";
+  document.getElementById("input-nombre").value = doctor ? doctor.nombre : "";
+  document.getElementById("input-servicio").value = doctor ? doctor.servicio : "OFTALMOLOGIA-JR";
+
+  const container = document.getElementById("turnos-container");
+  container.innerHTML = "";
+  const turnos = doctor ? doctor.turnos : [];
+  turnos.forEach(t => addTurnoRow(t));
+
+  modal.classList.add("open");
+}
+
+function addTurnoRow(t = null) {
+  const container = document.getElementById("turnos-container");
+  const div = document.createElement("div");
+  div.className = "turno-editor";
+  div.innerHTML = `
+    <button class="btn-remove-turno" onclick="this.parentElement.remove()">✕</button>
+    <div class="turno-editor-row">
+      <div>
+        <div class="form-label" style="font-size:.7rem">Día</div>
+        <select class="form-select" style="font-size:.8rem;padding:8px 10px" name="dia">
+          ${DIAS.filter(d=>d!=="Domingo").map(d=>`<option value="${d}"${t&&t.dia===d?" selected":""}>${d}</option>`).join("")}
+        </select>
+      </div>
+      <div>
+        <div class="form-label" style="font-size:.7rem">Tipo</div>
+        <select class="form-select" style="font-size:.8rem;padding:8px 10px" name="tipo">
+          ${TIPOS.map(tp=>`<option value="${tp}"${t&&t.tipo===tp?" selected":""}>${tp}</option>`).join("")}
+        </select>
+      </div>
+    </div>
+    <div class="turno-editor-row-3">
+      <div>
+        <div class="form-label" style="font-size:.7rem">Desde</div>
+        <input class="form-input" style="font-size:.85rem;padding:8px 10px" type="time" name="desde" value="${t?t.desde:"08:00"}" />
+      </div>
+      <div>
+        <div class="form-label" style="font-size:.7rem">Hasta</div>
+        <input class="form-input" style="font-size:.85rem;padding:8px 10px" type="time" name="hasta" value="${t?t.hasta:"12:00"}" />
+      </div>
+      <div>
+        <div class="form-label" style="font-size:.7rem">Min/turno</div>
+        <input class="form-input" style="font-size:.85rem;padding:8px 10px" type="number" name="duracion" min="5" max="120" value="${t?t.duracion:15}" />
+      </div>
+    </div>`;
+  container.appendChild(div);
+}
+
+function saveDoctor() {
+  const nombre = document.getElementById("input-nombre").value.trim();
+  const servicio = document.getElementById("input-servicio").value;
+  if (!nombre) { showToast("⚠️ Ingresá el nombre del profesional"); return; }
+
+  const turnosEls = document.querySelectorAll("#turnos-container .turno-editor");
+  const turnos = Array.from(turnosEls).map(el => ({
+    dia: el.querySelector("[name=dia]").value,
+    tipo: el.querySelector("[name=tipo]").value,
+    desde: el.querySelector("[name=desde]").value,
+    hasta: el.querySelector("[name=hasta]").value,
+    duracion: parseInt(el.querySelector("[name=duracion]").value) || 15
+  }));
+
+  const editId = document.getElementById("edit-doctor-id").value;
+  if (editId) {
+    const idx = doctors.findIndex(d => d.id === editId);
+    if (idx !== -1) doctors[idx] = { ...doctors[idx], nombre, servicio, turnos };
+  } else {
+    const id = nombre.toLowerCase().replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").slice(0,30) + "-" + Date.now().toString(36);
+    doctors.push({ id, nombre, servicio, turnos });
+  }
+
+  saveState();
+  closeModal("modal-doctor");
+  renderDoctorsList();
+  renderSchedule();
+  renderHero();
+  showToast(editId ? "Profesional actualizado ✓" : "Profesional agregado ✓");
+}
+
+// ══════════════════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════════════════
+function deleteDoctor(id) {
+  const doc = doctors.find(d => d.id === id);
+  if (!doc) return;
+  pendingDeleteId = id;
+  document.getElementById("confirm-title").textContent = "¿Eliminás este profesional?";
+  document.getElementById("confirm-msg").textContent = `Se eliminará a ${doc.nombre} y todos sus turnos.`;
+  document.getElementById("confirm-ok-btn").onclick = confirmDelete;
+  document.getElementById("confirm-dialog").classList.add("open");
+}
+function confirmDelete() {
+  doctors = doctors.filter(d => d.id !== pendingDeleteId);
+  saveState();
+  closeConfirm();
+  renderDoctorsList();
+  renderSchedule();
+  renderHero();
+  showToast("Profesional eliminado");
+}
+function closeConfirm() {
+  document.getElementById("confirm-dialog").classList.remove("open");
+  pendingDeleteId = null;
+}
+
+// ══════════════════════════════════════════════════════
+// UPLOAD / IMPORT
+// ══════════════════════════════════════════════════════
+function openUploadModal() {
+  document.getElementById("upload-preview").style.display = "none";
+  document.getElementById("file-input").value = "";
+  document.getElementById("modal-upload").classList.add("open");
+}
+
+function handleFileDrop(e) {
+  e.preventDefault();
+  document.getElementById("upload-dropzone").classList.remove("dragover");
+  const file = e.dataTransfer.files[0];
+  if (file) processXlsxFile(file);
+}
+
+function handleFileInput(e) {
+  const file = e.target.files[0];
+  if (file) processXlsxFile(file);
+}
+
+function processXlsxFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+
+      // Group by Profesional
+      const grouped = {};
+      rows.forEach(r => {
+        const nombre = (r["Profesional"] || "").toString().trim();
+        const servicio = (r["Servicio"] || "OFTALMOLOGIA-JR").toString().trim();
+        if (!nombre) return;
+        if (!grouped[nombre]) grouped[nombre] = { nombre, servicio, turnos: [] };
+        const dia = (r["Día"] || r["Dia"] || "").toString().trim();
+        const tipo = (r["Tipo de Turno"] || "Indistinto").toString().trim();
+        const desde = formatTime(r["Desde"]);
+        const hasta = formatTime(r["Hasta"]);
+        const duracion = parseInt(r["Duración (min)"] || r["Duracion (min)"] || 15);
+        if (dia) grouped[nombre].turnos.push({ dia, tipo, desde, hasta, duracion });
+      });
+
+      importedData = Object.values(grouped).map(d => ({
+        ...d,
+        id: d.nombre.toLowerCase().replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").slice(0,30)+"-"+Date.now().toString(36)
+      }));
+
+      const preview = document.getElementById("preview-content");
+      preview.innerHTML = importedData.map(d =>
+        `<div style="display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cobre)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <strong>${d.nombre}</strong> — ${d.turnos.length} turno${d.turnos.length!==1?"s":""}</div>`
+      ).join("");
+      document.getElementById("preview-title").textContent = `Se detectaron ${importedData.length} profesionales`;
+      document.getElementById("upload-preview").style.display = "block";
+      selectImportMode("add");
+    } catch(err) {
+      showToast("Error al leer el archivo");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function formatTime(val) {
+  if (!val) return "00:00";
+  if (typeof val === "string" && val.includes(":")) return val.slice(0,5);
+  // Excel time serial
+  if (typeof val === "number") {
+    const totalMin = Math.round(val * 24 * 60);
+    const h = Math.floor(totalMin / 60) % 24;
+    const m = totalMin % 60;
+    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+  }
+  return "00:00";
+}
+
+function selectImportMode(mode) {
+  importMode = mode;
+  const addEl = document.getElementById("opt-add");
+  const replEl = document.getElementById("opt-replace");
+  if (mode === "add") {
+    addEl.style.borderColor = "var(--dorado)"; addEl.style.color = "var(--cobre)"; addEl.style.background = "rgba(201,169,110,.08)";
+    replEl.style.borderColor = "var(--arena)"; replEl.style.color = "var(--roble)"; replEl.style.background = "#fff";
+  } else {
+    replEl.style.borderColor = "var(--dorado)"; replEl.style.color = "var(--cobre)"; replEl.style.background = "rgba(201,169,110,.08)";
+    addEl.style.borderColor = "var(--arena)"; addEl.style.color = "var(--roble)"; addEl.style.background = "#fff";
+  }
+}
+
+function confirmImport() {
+  if (!importedData.length) return;
+  if (importMode === "replace") {
+    doctors = importedData;
+  } else {
+    importedData.forEach(nd => {
+      const exists = doctors.findIndex(d => d.nombre.toLowerCase() === nd.nombre.toLowerCase());
+      if (exists !== -1) doctors[exists] = nd;
+      else doctors.push(nd);
+    });
+  }
+  saveState();
+  closeModal("modal-upload");
+  renderDoctorsList();
+  renderSchedule();
+  renderHero();
+  showToast(`${importedData.length} profesionales importados ✓`);
+  importedData = [];
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+}
+// Close on overlay click
+document.querySelectorAll(".modal-overlay").forEach(el => {
+  el.addEventListener("click", e => { if (e.target === el) el.classList.remove("open"); });
+});
+
+// ══════════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2500);
+}
+
+// ══════════════════════════════════════════════════════
+// PWA INSTALL
+// ══════════════════════════════════════════════════════
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById("install-banner").classList.add("show");
+});
+
+document.getElementById("install-btn").addEventListener("click", async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === "accepted") {
+    document.getElementById("install-banner").classList.remove("show");
+    showToast("¡App instalada correctamente!");
+  }
+  deferredInstallPrompt = null;
+});
+
+window.addEventListener("appinstalled", () => {
+  document.getElementById("install-banner").classList.remove("show");
+});
+
+// ══════════════════════════════════════════════════════
+// PWA MANIFEST (inline)
+// ══════════════════════════════════════════════════════
+const manifestData = {
+  name: "Black Optica — Cronograma",
+  short_name: "Black Optica",
+  description: "Cronograma de visitas de oftalmólogos",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#1A1410",
+  theme_color: "#C9A96E",
+  icons: [
+    { src: "https://dcdn-us.mitiendanube.com/stores/005/247/050/themes/common/logo-1796149085-1731459126-0c336543fa2133770fe42e939e46e2031731459126-480-0.webp", sizes: "192x192", type: "image/webp" },
+    { src: "https://dcdn-us.mitiendanube.com/stores/005/247/050/themes/common/logo-1796149085-1731459126-0c336543fa2133770fe42e939e46e2031731459126-480-0.webp", sizes: "512x512", type: "image/webp" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifestData)], { type: "application/json" });
+document.getElementById("manifest-link").href = URL.createObjectURL(blob);
+
+// ══════════════════════════════════════════════════════
+// SERVICE WORKER
+// ══════════════════════════════════════════════════════
+if ("serviceWorker" in navigator) {
+  const swCode = `
+    const CACHE = 'blackoptica-v1';
+    const ASSETS = ['./'];
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+      self.skipWaiting();
+    });
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+      self.clients.claim();
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./'))));
+    });
+  `;
+  const swBlob = new Blob([swCode], { type: "application/javascript" });
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+// ══════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════
+checkOnboarding();
+</script>
+</body>
+</html>
