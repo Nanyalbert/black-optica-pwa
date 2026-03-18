@@ -296,6 +296,15 @@ body{
 .day-pill.active.today-pill::after{color:rgba(26,20,16,.5)}
 .day-pill.no-doctors{opacity:.4}
 
+.inst-block{margin-top:10px;padding-top:10px;border-top:1px solid var(--lino)}
+.inst-block:first-child{margin-top:6px;padding-top:6px;border-top:none}
+.inst-label{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:.7rem;font-weight:700;
+  color:var(--roble);letter-spacing:.04em;text-transform:uppercase;
+  background:var(--lino);border-radius:8px;padding:3px 8px;margin-bottom:8px;
+}
+
 /* Schedule */
 .schedule-wrap{padding:20px}
 .schedule-title{
@@ -815,7 +824,7 @@ body{
         </div>
         <div class="hero-stat">
           <div class="hero-stat-num" id="stat-shifts">0</div>
-          <div class="hero-stat-label">Bloques horarios</div>
+          <div class="hero-stat-label">Instituciones</div>
         </div>
         <div class="hero-stat">
           <div class="hero-stat-num" id="stat-turns">0</div>
@@ -902,9 +911,9 @@ body{
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Turnos</label>
-        <div id="turnos-container"></div>
-        <button class="btn-add-turno" onclick="addTurnoRow()">+ Agregar turno</button>
+        <label class="form-label">Instituciones y horarios</label>
+        <div id="instituciones-container"></div>
+        <button class="btn-add-turno" onclick="addInstitucionBlock()">+ Agregar institución</button>
       </div>
       <div class="modal-actions">
         <button class="btn-secondary-out" onclick="closeModal('modal-doctor')">Cancelar</button>
@@ -926,7 +935,7 @@ body{
       <div class="upload-section" id="upload-dropzone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleFileDrop(event)">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--arena)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         <p><strong>Tocá para seleccionar</strong> o arrastrá un archivo .xlsx</p>
-        <p style="font-size:.75rem;margin-top:4px;opacity:.7">El archivo debe tener las columnas: Profesional, Servicio, Día, Tipo de Turno, Desde, Hasta, Duración (min)</p>
+        <p style="font-size:.75rem;margin-top:4px;opacity:.7">El archivo debe tener las columnas: Profesional, Servicio, Institución, Día, Tipo de Turno, Desde, Hasta, Duración (min)</p>
       </div>
       <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none" onchange="handleFileInput(event)" />
 
@@ -968,90 +977,118 @@ body{
 // DATA
 // ══════════════════════════════════════════════════════
 const INITIAL_DOCTORS = [
-  {id:"ibañez-agustina",nombre:"Ibañez, Agustina",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Lunes",tipo:"Indistinto",desde:"14:00",hasta:"17:00",duracion:15},
-    {dia:"Lunes",tipo:"Ulterior / Control",desde:"17:00",hasta:"17:30",duracion:15},
-    {dia:"Martes",tipo:"Indistinto",desde:"08:00",hasta:"12:00",duracion:15},
-    {dia:"Martes",tipo:"Ulterior / Control",desde:"12:00",hasta:"12:30",duracion:15},
-    {dia:"Jueves",tipo:"Indistinto",desde:"08:00",hasta:"12:00",duracion:15},
-    {dia:"Jueves",tipo:"Ulterior / Control",desde:"12:00",hasta:"12:30",duracion:15}
+  {id:"ibañez-agustina",nombre:"Ibañez, Agustina",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Lunes",tipo:"Indistinto",desde:"14:00",hasta:"17:00",duracion:15},
+      {dia:"Lunes",tipo:"Ulterior / Control",desde:"17:00",hasta:"17:30",duracion:15},
+      {dia:"Martes",tipo:"Indistinto",desde:"08:00",hasta:"12:00",duracion:15},
+      {dia:"Martes",tipo:"Ulterior / Control",desde:"12:00",hasta:"12:30",duracion:15},
+      {dia:"Jueves",tipo:"Indistinto",desde:"08:00",hasta:"12:00",duracion:15},
+      {dia:"Jueves",tipo:"Ulterior / Control",desde:"12:00",hasta:"12:30",duracion:15}
+    ]}
   ]},
-  {id:"zurita-melina",nombre:"Zurita Padro, Melina Beatriz",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Miércoles",tipo:"Indistinto",desde:"09:00",hasta:"13:00",duracion:15},
-    {dia:"Jueves",tipo:"Práctica",desde:"09:00",hasta:"13:00",duracion:10},
-    {dia:"Viernes",tipo:"Indistinto",desde:"12:00",hasta:"17:15",duracion:15}
+  {id:"zurita-melina",nombre:"Zurita Padro, Melina Beatriz",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Miércoles",tipo:"Indistinto",desde:"09:00",hasta:"13:00",duracion:15},
+      {dia:"Jueves",tipo:"Práctica",desde:"09:00",hasta:"13:00",duracion:10},
+      {dia:"Viernes",tipo:"Indistinto",desde:"12:00",hasta:"17:15",duracion:15}
+    ]}
   ]},
-  {id:"osaba-matias",nombre:"Osaba, Matias",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Miércoles",tipo:"Indistinto",desde:"09:20",hasta:"13:20",duracion:15},
-    {dia:"Miércoles",tipo:"Ulterior / Control",desde:"13:20",hasta:"14:20",duracion:15},
-    {dia:"Sábado",tipo:"Indistinto",desde:"08:00",hasta:"11:00",duracion:15},
-    {dia:"Sábado",tipo:"Indistinto",desde:"11:00",hasta:"12:00",duracion:15}
+  {id:"osaba-matias",nombre:"Osaba, Matias",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Miércoles",tipo:"Indistinto",desde:"09:20",hasta:"13:20",duracion:15},
+      {dia:"Miércoles",tipo:"Ulterior / Control",desde:"13:20",hasta:"14:20",duracion:15},
+      {dia:"Sábado",tipo:"Indistinto",desde:"08:00",hasta:"11:00",duracion:15},
+      {dia:"Sábado",tipo:"Indistinto",desde:"11:00",hasta:"12:00",duracion:15}
+    ]}
   ]},
-  {id:"gonzalez-eugenia",nombre:"González Castellanos, María Eugenia",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Lunes",tipo:"Indistinto",desde:"14:00",hasta:"18:30",duracion:15},
-    {dia:"Martes",tipo:"Indistinto",desde:"13:45",hasta:"18:00",duracion:15}
+  {id:"gonzalez-eugenia",nombre:"González Castellanos, María Eugenia",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Lunes",tipo:"Indistinto",desde:"14:00",hasta:"18:30",duracion:15},
+      {dia:"Martes",tipo:"Indistinto",desde:"13:45",hasta:"18:00",duracion:15}
+    ]}
   ]},
-  {id:"dalmagro-juan",nombre:"Dalmagro, Juan Antonio",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Martes",tipo:"Indistinto",desde:"08:20",hasta:"09:20",duracion:20},
-    {dia:"Martes",tipo:"Ulterior / Control",desde:"09:20",hasta:"10:00",duracion:20},
-    {dia:"Miércoles",tipo:"Indistinto",desde:"14:30",hasta:"17:10",duracion:20},
-    {dia:"Miércoles",tipo:"Ulterior / Control",desde:"17:10",hasta:"18:10",duracion:20}
+  {id:"dalmagro-juan",nombre:"Dalmagro, Juan Antonio",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Martes",tipo:"Indistinto",desde:"08:20",hasta:"09:20",duracion:20},
+      {dia:"Martes",tipo:"Ulterior / Control",desde:"09:20",hasta:"10:00",duracion:20},
+      {dia:"Miércoles",tipo:"Indistinto",desde:"14:30",hasta:"17:10",duracion:20},
+      {dia:"Miércoles",tipo:"Ulterior / Control",desde:"17:10",hasta:"18:10",duracion:20}
+    ]}
   ]},
-  {id:"gonzalez-ines",nombre:"González Castellanos, Maria Inés",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Lunes",tipo:"Indistinto con prácticas",desde:"16:00",hasta:"19:00",duracion:15},
-    {dia:"Jueves",tipo:"Indistinto con prácticas",desde:"14:00",hasta:"18:00",duracion:15},
-    {dia:"Viernes",tipo:"Indistinto",desde:"14:00",hasta:"18:00",duracion:15}
+  {id:"gonzalez-ines",nombre:"González Castellanos, Maria Inés",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Lunes",tipo:"Indistinto con prácticas",desde:"16:00",hasta:"19:00",duracion:15},
+      {dia:"Jueves",tipo:"Indistinto con prácticas",desde:"14:00",hasta:"18:00",duracion:15},
+      {dia:"Viernes",tipo:"Indistinto",desde:"14:00",hasta:"18:00",duracion:15}
+    ]}
   ]},
-  {id:"holgado-camila",nombre:"Holgado Herrera, Maria Camila",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Miércoles",tipo:"Indistinto",desde:"12:00",hasta:"17:30",duracion:15},
-    {dia:"Miércoles",tipo:"Ulterior / Control",desde:"17:30",hasta:"18:30",duracion:15}
+  {id:"holgado-camila",nombre:"Holgado Herrera, Maria Camila",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Miércoles",tipo:"Indistinto",desde:"12:00",hasta:"17:30",duracion:15},
+      {dia:"Miércoles",tipo:"Ulterior / Control",desde:"17:30",hasta:"18:30",duracion:15}
+    ]}
   ]},
-  {id:"muñoz-agustina",nombre:"Muñoz, Agustina Gabriela",servicio:"DEMANDA DE OFTALMOLOGIA-JR",turnos:[
-    {dia:"Martes",tipo:"Indistinto",desde:"10:00",hasta:"13:00",duracion:30},
-    {dia:"Miércoles",tipo:"Indistinto",desde:"14:00",hasta:"16:00",duracion:30},
-    {dia:"Jueves",tipo:"Indistinto",desde:"14:00",hasta:"18:00",duracion:30}
+  {id:"muñoz-agustina",nombre:"Muñoz, Agustina Gabriela",servicio:"DEMANDA DE OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Martes",tipo:"Indistinto",desde:"10:00",hasta:"13:00",duracion:30},
+      {dia:"Miércoles",tipo:"Indistinto",desde:"14:00",hasta:"16:00",duracion:30},
+      {dia:"Jueves",tipo:"Indistinto",desde:"14:00",hasta:"18:00",duracion:30}
+    ]}
   ]},
-  {id:"lopez-giordano-paula",nombre:"Lopez Giordano, Paula Beatriz",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Martes",tipo:"Indistinto",desde:"08:40",hasta:"12:20",duracion:20},
-    {dia:"Martes",tipo:"Indistinto",desde:"14:00",hasta:"17:00",duracion:20},
-    {dia:"Jueves",tipo:"Indistinto",desde:"08:40",hasta:"12:20",duracion:20},
-    {dia:"Jueves",tipo:"Indistinto",desde:"14:00",hasta:"17:00",duracion:20}
+  {id:"lopez-giordano-paula",nombre:"Lopez Giordano, Paula Beatriz",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Martes",tipo:"Indistinto",desde:"08:40",hasta:"12:20",duracion:20},
+      {dia:"Martes",tipo:"Indistinto",desde:"14:00",hasta:"17:00",duracion:20},
+      {dia:"Jueves",tipo:"Indistinto",desde:"08:40",hasta:"12:20",duracion:20},
+      {dia:"Jueves",tipo:"Indistinto",desde:"14:00",hasta:"17:00",duracion:20}
+    ]}
   ]},
-  {id:"monti-jose",nombre:"Monti, Jose Rodolfo",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Lunes",tipo:"Indistinto",desde:"08:30",hasta:"11:30",duracion:20},
-    {dia:"Lunes",tipo:"Ulterior / Control",desde:"11:30",hasta:"12:30",duracion:20},
-    {dia:"Lunes",tipo:"Indistinto",desde:"13:30",hasta:"15:15",duracion:15},
-    {dia:"Lunes",tipo:"Ulterior / Control",desde:"15:15",hasta:"16:15",duracion:15},
-    {dia:"Martes",tipo:"Indistinto",desde:"08:30",hasta:"11:30",duracion:20},
-    {dia:"Martes",tipo:"Ulterior / Control",desde:"11:30",hasta:"12:30",duracion:20},
-    {dia:"Martes",tipo:"Indistinto",desde:"13:30",hasta:"15:15",duracion:15},
-    {dia:"Martes",tipo:"Ulterior / Control",desde:"15:15",hasta:"16:15",duracion:15}
+  {id:"monti-jose",nombre:"Monti, Jose Rodolfo",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Lunes",tipo:"Indistinto",desde:"08:30",hasta:"11:30",duracion:20},
+      {dia:"Lunes",tipo:"Ulterior / Control",desde:"11:30",hasta:"12:30",duracion:20},
+      {dia:"Lunes",tipo:"Indistinto",desde:"13:30",hasta:"15:15",duracion:15},
+      {dia:"Lunes",tipo:"Ulterior / Control",desde:"15:15",hasta:"16:15",duracion:15},
+      {dia:"Martes",tipo:"Indistinto",desde:"08:30",hasta:"11:30",duracion:20},
+      {dia:"Martes",tipo:"Ulterior / Control",desde:"11:30",hasta:"12:30",duracion:20},
+      {dia:"Martes",tipo:"Indistinto",desde:"13:30",hasta:"15:15",duracion:15},
+      {dia:"Martes",tipo:"Ulterior / Control",desde:"15:15",hasta:"16:15",duracion:15}
+    ]}
   ]},
-  {id:"maccio-juan",nombre:"Maccio, Juan Pablo",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Lunes",tipo:"Indistinto con prácticas",desde:"08:40",hasta:"12:00",duracion:20},
-    {dia:"Martes",tipo:"Indistinto con prácticas",desde:"14:00",hasta:"17:00",duracion:20},
-    {dia:"Martes",tipo:"Ulterior / Control",desde:"17:00",hasta:"18:00",duracion:20},
-    {dia:"Jueves",tipo:"Indistinto con prácticas",desde:"09:40",hasta:"12:00",duracion:20},
-    {dia:"Jueves",tipo:"Ulterior / Control",desde:"12:00",hasta:"12:40",duracion:20},
-    {dia:"Jueves",tipo:"Indistinto con prácticas",desde:"14:00",hasta:"17:00",duracion:20},
-    {dia:"Jueves",tipo:"Ulterior / Control",desde:"17:00",hasta:"18:00",duracion:20},
-    {dia:"Viernes",tipo:"Indistinto con prácticas",desde:"08:40",hasta:"12:00",duracion:20}
+  {id:"maccio-juan",nombre:"Maccio, Juan Pablo",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Lunes",tipo:"Indistinto con prácticas",desde:"08:40",hasta:"12:00",duracion:20},
+      {dia:"Martes",tipo:"Indistinto con prácticas",desde:"14:00",hasta:"17:00",duracion:20},
+      {dia:"Martes",tipo:"Ulterior / Control",desde:"17:00",hasta:"18:00",duracion:20},
+      {dia:"Jueves",tipo:"Indistinto con prácticas",desde:"09:40",hasta:"12:00",duracion:20},
+      {dia:"Jueves",tipo:"Ulterior / Control",desde:"12:00",hasta:"12:40",duracion:20},
+      {dia:"Jueves",tipo:"Indistinto con prácticas",desde:"14:00",hasta:"17:00",duracion:20},
+      {dia:"Jueves",tipo:"Ulterior / Control",desde:"17:00",hasta:"18:00",duracion:20},
+      {dia:"Viernes",tipo:"Indistinto con prácticas",desde:"08:40",hasta:"12:00",duracion:20}
+    ]}
   ]},
-  {id:"monetto-agostina",nombre:"Monetto, Agostina",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Miércoles",tipo:"Indistinto",desde:"13:15",hasta:"16:00",duracion:15}
+  {id:"monetto-agostina",nombre:"Monetto, Agostina",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Miércoles",tipo:"Indistinto",desde:"13:15",hasta:"16:00",duracion:15}
+    ]}
   ]},
-  {id:"knoll-erna",nombre:"Knoll, Erna Gertrudis",servicio:"OFTALMOLOGIA-JR",turnos:[
-    {dia:"Lunes",tipo:"Indistinto",desde:"08:00",hasta:"12:00",duracion:20},
-    {dia:"Lunes",tipo:"Ulterior / Control",desde:"12:00",hasta:"13:00",duracion:20},
-    {dia:"Miércoles",tipo:"Indistinto con prácticas",desde:"08:00",hasta:"11:40",duracion:20},
-    {dia:"Miércoles",tipo:"Ulterior / Control",desde:"11:40",hasta:"12:40",duracion:20},
-    {dia:"Viernes",tipo:"Indistinto",desde:"08:00",hasta:"11:20",duracion:20},
-    {dia:"Viernes",tipo:"Ulterior / Control",desde:"11:20",hasta:"12:40",duracion:20}
+  {id:"knoll-erna",nombre:"Knoll, Erna Gertrudis",servicio:"OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Lunes",tipo:"Indistinto",desde:"08:00",hasta:"12:00",duracion:20},
+      {dia:"Lunes",tipo:"Ulterior / Control",desde:"12:00",hasta:"13:00",duracion:20},
+      {dia:"Miércoles",tipo:"Indistinto con prácticas",desde:"08:00",hasta:"11:40",duracion:20},
+      {dia:"Miércoles",tipo:"Ulterior / Control",desde:"11:40",hasta:"12:40",duracion:20},
+      {dia:"Viernes",tipo:"Indistinto",desde:"08:00",hasta:"11:20",duracion:20},
+      {dia:"Viernes",tipo:"Ulterior / Control",desde:"11:20",hasta:"12:40",duracion:20}
+    ]}
   ]},
-  {id:"lopez-emilio",nombre:"Lopez, Emilio",servicio:"DEMANDA DE OFTALMOLOGIA-JR",turnos:[
-    {dia:"Martes",tipo:"Indistinto",desde:"14:00",hasta:"16:00",duracion:30},
-    {dia:"Miércoles",tipo:"Indistinto",desde:"14:00",hasta:"16:00",duracion:30},
-    {dia:"Viernes",tipo:"Indistinto",desde:"14:00",hasta:"18:00",duracion:30}
+  {id:"lopez-emilio",nombre:"Lopez, Emilio",servicio:"DEMANDA DE OFTALMOLOGIA-JR",instituciones:[
+    {nombre:"Black Optica",turnos:[
+      {dia:"Martes",tipo:"Indistinto",desde:"14:00",hasta:"16:00",duracion:30},
+      {dia:"Miércoles",tipo:"Indistinto",desde:"14:00",hasta:"16:00",duracion:30},
+      {dia:"Viernes",tipo:"Indistinto",desde:"14:00",hasta:"18:00",duracion:30}
+    ]}
   ]}
 ];
 
@@ -1068,9 +1105,18 @@ let importMode = "add";
 let pendingDeleteId = null;
 let deferredInstallPrompt = null;
 
+function migrateDoctor(d) {
+  if (d.turnos && !d.instituciones) {
+    const { turnos, ...rest } = d;
+    return { ...rest, instituciones: [{ nombre: "Black Optica", turnos }] };
+  }
+  return d;
+}
+
 function loadState() {
   const saved = localStorage.getItem("blackoptica_doctors");
-  doctors = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(INITIAL_DOCTORS));
+  const raw = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(INITIAL_DOCTORS));
+  doctors = raw.map(migrateDoctor);
 }
 function saveState() {
   localStorage.setItem("blackoptica_doctors", JSON.stringify(doctors));
@@ -1223,10 +1269,16 @@ function selectDay(d) {
 // ══════════════════════════════════════════════════════
 function getDoctorsForDay(day) {
   return doctors
-    .map(doc => ({
-      ...doc,
-      turnosDelDia: doc.turnos.filter(t => t.dia === day)
-    }))
+    .map(doc => {
+      const institucionesDelDia = (doc.instituciones || [])
+        .map(inst => ({
+          nombre: inst.nombre,
+          turnos: inst.turnos.filter(t => t.dia === day)
+        }))
+        .filter(inst => inst.turnos.length > 0);
+      const allTurnos = institucionesDelDia.flatMap(i => i.turnos);
+      return { ...doc, institucionesDelDia, turnosDelDia: allTurnos };
+    })
     .filter(doc => doc.turnosDelDia.length > 0)
     .sort((a,b) => {
       const aMin = Math.min(...a.turnosDelDia.map(t => timeToMin(t.desde)));
@@ -1278,20 +1330,29 @@ function renderSchedule() {
   }
 
   list.innerHTML = docsForDay.map((doc, idx) => {
-    const turnosHTML = doc.turnosDelDia.map(t => {
-      const turns = calcTurns(t);
-      return `<div class="turno-row">
-        <div class="turno-time">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          ${t.desde}
+    const instHTML = doc.institucionesDelDia.map(inst => {
+      const turnosHTML = inst.turnos.map(t => {
+        const turns = calcTurns(t);
+        return `<div class="turno-row">
+          <div class="turno-time">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${t.desde}
+          </div>
+          <div style="font-size:.78rem;color:var(--roble);font-weight:500">→</div>
+          <div class="turno-time">${t.hasta}</div>
+          <div class="turno-sep"></div>
+          <div class="turno-badges">
+            <span class="badge ${badgeClass(t.tipo)}">${t.tipo}</span>
+            <span class="badge badge-duracion">${t.duracion} min · ~${turns} turnos</span>
+          </div>
+        </div>`;
+      }).join("");
+      return `<div class="inst-block">
+        <div class="inst-label">
+          <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          ${inst.nombre}
         </div>
-        <div style="font-size:.78rem;color:var(--roble);font-weight:500">→</div>
-        <div class="turno-time">${t.hasta}</div>
-        <div class="turno-sep"></div>
-        <div class="turno-badges">
-          <span class="badge ${badgeClass(t.tipo)}">${t.tipo}</span>
-          <span class="badge badge-duracion">${t.duracion} min · ~${turns} turnos</span>
-        </div>
+        <div class="turno-list">${turnosHTML}</div>
       </div>`;
     }).join("");
 
@@ -1304,7 +1365,7 @@ function renderSchedule() {
           <span class="doctor-service${isDemanda?" demanda":""}">${doc.servicio}</span>
         </div>
       </div>
-      <div class="turno-list">${turnosHTML}</div>
+      ${instHTML}
     </div>`;
   }).join("");
 }
@@ -1347,13 +1408,19 @@ function renderDoctorsList() {
   }
 
   grid.innerHTML = filtered.map((doc, idx) => {
-    const dias = [...new Set(doc.turnos.map(t => t.dia))];
+    const allTurnos = (doc.instituciones||[]).flatMap(i=>i.turnos||[]);
+    const dias = [...new Set(allTurnos.map(t => t.dia))];
+    const instCount = (doc.instituciones||[]).length;
     const isDemanda = doc.servicio.includes("DEMANDA");
     return `<div class="doc-mgmt-card" style="animation-delay:${idx*40}ms">
       <div class="doc-mgmt-avatar">${initials(doc.nombre)}</div>
       <div class="doc-mgmt-name">${doc.nombre}</div>
       <span class="doc-mgmt-service${isDemanda?" demanda":""}">${doc.servicio === "OFTALMOLOGIA-JR" ? "OFT-JR" : "DEMANDA"}</span>
       <div class="doc-mgmt-days">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        ${instCount} institución${instCount!==1?"es":""}
+      </div>
+      <div class="doc-mgmt-days" style="margin-top:2px">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         ${dias.length} día${dias.length!==1?"s":""} por semana
       </div>
@@ -1377,16 +1444,48 @@ function openDoctorModal(id) {
   document.getElementById("input-nombre").value = doctor ? doctor.nombre : "";
   document.getElementById("input-servicio").value = doctor ? doctor.servicio : "OFTALMOLOGIA-JR";
 
-  const container = document.getElementById("turnos-container");
+  const container = document.getElementById("instituciones-container");
   container.innerHTML = "";
-  const turnos = doctor ? doctor.turnos : [];
-  turnos.forEach(t => addTurnoRow(t));
+  const instituciones = doctor ? (doctor.instituciones || []) : [];
+  if (instituciones.length === 0) {
+    addInstitucionBlock();
+  } else {
+    instituciones.forEach(inst => addInstitucionBlock(inst));
+  }
 
   modal.classList.add("open");
 }
 
-function addTurnoRow(t = null) {
-  const container = document.getElementById("turnos-container");
+function addInstitucionBlock(inst = null) {
+  const container = document.getElementById("instituciones-container");
+  const div = document.createElement("div");
+  div.className = "inst-block";
+  div.style.cssText = "border:1.5px solid var(--arena);border-radius:12px;padding:12px;margin-bottom:12px;background:var(--alabaster);";
+  div.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="form-label" style="margin:0;font-size:.78rem;font-weight:700;color:var(--cobre)">INSTITUCIÓN</div>
+      <button onclick="this.closest('.inst-block').remove()" style="background:none;border:none;cursor:pointer;color:var(--arena);font-size:1rem;line-height:1;padding:2px 4px">✕</button>
+    </div>
+    <input class="form-input inst-nombre" type="text" placeholder="Nombre de la institución" value="${inst?inst.nombre:""}" style="margin-bottom:10px" />
+    <div class="turnos-de-inst"></div>
+    <button onclick="addTurnoToInst(this)" style="font-size:.75rem;color:var(--cobre);background:none;border:1px dashed var(--arena);border-radius:8px;padding:6px 10px;cursor:pointer;width:100%;margin-top:4px">+ Agregar horario</button>
+  `;
+  container.appendChild(div);
+  const turnosContainer = div.querySelector(".turnos-de-inst");
+  const turnos = inst ? (inst.turnos || []) : [];
+  if (turnos.length === 0) {
+    addTurnoToContainer(turnosContainer);
+  } else {
+    turnos.forEach(t => addTurnoToContainer(turnosContainer, t));
+  }
+}
+
+function addTurnoToInst(btn) {
+  const turnosContainer = btn.previousElementSibling;
+  addTurnoToContainer(turnosContainer);
+}
+
+function addTurnoToContainer(container, t = null) {
   const div = document.createElement("div");
   div.className = "turno-editor";
   div.innerHTML = `
@@ -1427,22 +1526,27 @@ function saveDoctor() {
   const servicio = document.getElementById("input-servicio").value;
   if (!nombre) { showToast("⚠️ Ingresá el nombre del profesional"); return; }
 
-  const turnosEls = document.querySelectorAll("#turnos-container .turno-editor");
-  const turnos = Array.from(turnosEls).map(el => ({
-    dia: el.querySelector("[name=dia]").value,
-    tipo: el.querySelector("[name=tipo]").value,
-    desde: el.querySelector("[name=desde]").value,
-    hasta: el.querySelector("[name=hasta]").value,
-    duracion: parseInt(el.querySelector("[name=duracion]").value) || 15
-  }));
+  const instBlocks = document.querySelectorAll("#instituciones-container .inst-block");
+  const instituciones = Array.from(instBlocks).map(block => {
+    const nombreInst = block.querySelector(".inst-nombre").value.trim() || "Sin nombre";
+    const turnosEls = block.querySelectorAll(".turno-editor");
+    const turnos = Array.from(turnosEls).map(el => ({
+      dia: el.querySelector("[name=dia]").value,
+      tipo: el.querySelector("[name=tipo]").value,
+      desde: el.querySelector("[name=desde]").value,
+      hasta: el.querySelector("[name=hasta]").value,
+      duracion: parseInt(el.querySelector("[name=duracion]").value) || 15
+    }));
+    return { nombre: nombreInst, turnos };
+  }).filter(i => i.turnos.length > 0);
 
   const editId = document.getElementById("edit-doctor-id").value;
   if (editId) {
     const idx = doctors.findIndex(d => d.id === editId);
-    if (idx !== -1) doctors[idx] = { ...doctors[idx], nombre, servicio, turnos };
+    if (idx !== -1) doctors[idx] = { ...doctors[idx], nombre, servicio, instituciones };
   } else {
     const id = nombre.toLowerCase().replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").slice(0,30) + "-" + Date.now().toString(36);
-    doctors.push({ id, nombre, servicio, turnos });
+    doctors.push({ id, nombre, servicio, instituciones });
   }
 
   saveState();
@@ -1508,30 +1612,36 @@ function processXlsxFile(file) {
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
 
-      // Group by Profesional
+      // Group by Profesional → Institución → turnos
       const grouped = {};
       rows.forEach(r => {
         const nombre = (r["Profesional"] || "").toString().trim();
         const servicio = (r["Servicio"] || "OFTALMOLOGIA-JR").toString().trim();
+        const institucion = (r["Institución"] || r["Institucion"] || "Black Optica").toString().trim();
         if (!nombre) return;
-        if (!grouped[nombre]) grouped[nombre] = { nombre, servicio, turnos: [] };
+        if (!grouped[nombre]) grouped[nombre] = { nombre, servicio, instituciones: {} };
+        if (!grouped[nombre].instituciones[institucion]) grouped[nombre].instituciones[institucion] = [];
         const dia = (r["Día"] || r["Dia"] || "").toString().trim();
         const tipo = (r["Tipo de Turno"] || "Indistinto").toString().trim();
         const desde = formatTime(r["Desde"]);
         const hasta = formatTime(r["Hasta"]);
         const duracion = parseInt(r["Duración (min)"] || r["Duracion (min)"] || 15);
-        if (dia) grouped[nombre].turnos.push({ dia, tipo, desde, hasta, duracion });
+        if (dia) grouped[nombre].instituciones[institucion].push({ dia, tipo, desde, hasta, duracion });
       });
 
       importedData = Object.values(grouped).map(d => ({
-        ...d,
-        id: d.nombre.toLowerCase().replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").slice(0,30)+"-"+Date.now().toString(36)
+        id: d.nombre.toLowerCase().replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").slice(0,30)+"-"+Date.now().toString(36),
+        nombre: d.nombre,
+        servicio: d.servicio,
+        instituciones: Object.entries(d.instituciones).map(([nombre, turnos]) => ({ nombre, turnos }))
       }));
 
       const preview = document.getElementById("preview-content");
-      preview.innerHTML = importedData.map(d =>
-        `<div style="display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cobre)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <strong>${d.nombre}</strong> — ${d.turnos.length} turno${d.turnos.length!==1?"s":""}</div>`
-      ).join("");
+      preview.innerHTML = importedData.map(d => {
+        const instCount = d.instituciones.length;
+        const turnosTotal = d.instituciones.reduce((a,i)=>a+i.turnos.length,0);
+        return `<div style="display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cobre)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <strong>${d.nombre}</strong> — ${instCount} institución${instCount!==1?"es":""} · ${turnosTotal} horario${turnosTotal!==1?"s":""}</div>`;
+      }).join("");
       document.getElementById("preview-title").textContent = `Se detectaron ${importedData.length} profesionales`;
       document.getElementById("upload-preview").style.display = "block";
       selectImportMode("add");
