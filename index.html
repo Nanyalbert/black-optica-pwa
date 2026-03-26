@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
 :root {
@@ -345,11 +346,6 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
   <nav class="navbar">
     <img class="navbar-logo" src="https://dcdn-us.mitiendanube.com/stores/005/247/050/themes/common/logo-1796149085-1731459126-0c336543fa2133770fe42e939e46e2031731459126-480-0.webp" alt="Black Optica" />
     <div class="navbar-right">
-      <div class="nav-tabs" id="desktop-tabs">
-        <button class="nav-tab active" onclick="showPage('home')">Cronograma</button>
-        <button class="nav-tab" onclick="showPage('doctors')">Oftalmólogos</button>
-        <button class="nav-tab" onclick="showPage('comisiones')">Comisiones</button>
-      </div>
       <div class="user-chip" onclick="editUserName()">
         <div class="user-avatar" id="nav-avatar">?</div>
         <span class="user-name" id="nav-username">Usuario</span>
@@ -427,7 +423,7 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
       </select>
       <button class="import-csv-btn" onclick="openCsvModal()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Importar CSV
+        Importar Excel
       </button>
       <button class="word-btn" onclick="openWordModal()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -542,19 +538,20 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
   </div>
 </div>
 
-<!-- MODAL CSV COMISIONES -->
+<!-- MODAL EXCEL COMISIONES -->
 <div class="modal-overlay" id="modal-csv">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-header"><span class="modal-title">Importar recetas (CSV)</span><button class="modal-close" onclick="closeModal('modal-csv')">✕</button></div>
+    <div class="modal-header"><span class="modal-title">Importar recetas (.xlsx)</span><button class="modal-close" onclick="closeModal('modal-csv')">✕</button></div>
     <div class="modal-body">
-      <p style="font-size:.82rem;color:var(--roble);margin-bottom:16px;line-height:1.6">Importá el CSV exportado del sistema. Columnas esperadas: <strong>Fecha Registro, Cliente, Medico, Total Receta S/IVA</strong>. Las filas sin médico se ignoran automáticamente.</p>
+      <p style="font-size:.82rem;color:var(--roble);margin-bottom:16px;line-height:1.6">Importá el Excel exportado de tu sistema. Columnas: <strong>Fecha Registro, Cliente, Medico, Total Receta S/IVA</strong>. Las filas sin médico se ignoran automáticamente.</p>
       <div class="upload-section" id="csv-dropzone" onclick="document.getElementById('csv-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleCsvDrop(event)">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--arena)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        <p><strong>Tocá para seleccionar</strong> o arrastrá un .csv</p>
-        <p style="font-size:.72rem;opacity:.6;margin-top:4px">Separador: punto y coma (;)</p>
+        <p><strong>Tocá para seleccionar</strong> o arrastrá un archivo</p>
+        <p style="font-size:.72rem;opacity:.6;margin-top:4px">Formatos aceptados: .xlsx, .xls</p>
       </div>
-      <input type="file" id="csv-input" accept=".csv,.txt" style="display:none" onchange="handleCsvInput(event)" />
+      <input type="file" id="csv-input" accept=".xlsx,.xls" style="display:none" onchange="handleCsvInput(event)" />
+
       <div id="csv-preview" style="display:none;margin-top:12px">
         <div style="font-size:.85rem;font-weight:600;color:var(--black);margin-bottom:8px" id="csv-preview-title"></div>
         <div style="background:#fff;border:1px solid var(--lino);border-radius:12px;padding:12px;max-height:160px;overflow-y:auto;font-size:.75rem;color:var(--roble);line-height:1.8" id="csv-preview-content"></div>
@@ -955,89 +952,88 @@ function confirmImport(){
 // ══════════════════════════════════════════════════════
 // CSV COMISIONES IMPORT
 // ══════════════════════════════════════════════════════
-function openCsvModal(){document.getElementById("csv-preview").style.display="none";document.getElementById("csv-input").value="";document.getElementById("modal-csv").classList.add("open");}
-function handleCsvDrop(e){e.preventDefault();document.getElementById("csv-dropzone").classList.remove("dragover");const f=e.dataTransfer.files[0];if(f)processCsvFile(f);}
-function handleCsvInput(e){const f=e.target.files[0];if(f)processCsvFile(f);}
-
-function parseMonto(str){
-  if(!str)return 0;
-  // Format: $140,826.450 → 140826.45
-  let s=str.toString().replace(/\$/g,"").trim();
-  // Remove thousands separator (comma before 3 digits at end or before decimal)
-  // Argentine format: period as thousands, comma as decimal — but CSV shows $140,826.450
-  // Actually from the CSV it looks like comma=thousands, period=decimal
-  s=s.replace(/,/g,""); // remove commas (thousands)
-  return parseFloat(s)||0;
+function openCsvModal(){
+  document.getElementById("csv-preview").style.display="none";
+  document.getElementById("csv-input").value="";
+  document.getElementById("modal-csv").classList.add("open");
+}
+function handleCsvDrop(e){
+  e.preventDefault();
+  document.getElementById("csv-dropzone").classList.remove("dragover");
+  const f=e.dataTransfer.files[0];
+  if(f) processExcelFile(f);
+}
+function handleCsvInput(e){
+  const f=e.target.files[0];
+  if(f) processExcelFile(f);
 }
 
-function parseDate(str){
-  if(!str)return null;
-  // DD/MM/YYYY
-  const parts=str.split("/");
-  if(parts.length===3)return new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]));
-  return new Date(str);
-}
-
-function cleanPatientName(raw){
-  if(!raw)return"";
-  // Format: "GARCIA GUSTAVO ALEJANDRO, GARCIA GUSTAVO ALEJANDRO" — deduplicated
-  const parts=raw.split(",").map(s=>s.trim());
-  // Take the shorter/first part which is usually "APELLIDO NOMBRE"
-  return parts[0]||raw;
-}
-
-function cleanDoctorName(raw){
-  if(!raw)return"";
-  return raw.trim();
-}
-
-function processCsvFile(file){
+function processExcelFile(file){
   const reader=new FileReader();
   reader.onload=e=>{
     try{
-      const text=e.target.result;
-      // Parse with PapaParse, semicolon separator, skip first row (sep=;)
-      const result=Papa.parse(text,{delimiter:";",skipEmptyLines:true});
-      const rows=result.data;
-      // Find header row
-      let headerIdx=rows.findIndex(r=>r.some(c=>c.toString().toLowerCase().includes("fecha")));
-      if(headerIdx===-1)headerIdx=1;
-      const headers=rows[headerIdx].map(h=>h.toString().trim());
-      const dataRows=rows.slice(headerIdx+1);
+      const wb=XLSX.read(e.target.result,{type:"array"});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+      if(!rows.length){showToast("⚠️ El archivo está vacío");return;}
 
-      const fechaCol=headers.findIndex(h=>h.toLowerCase().includes("fecha"));
+      // Find header row
+      let headerIdx=rows.findIndex(r=>r.some(c=>String(c).includes("Fecha")&&String(c).length<20));
+      if(headerIdx===-1) headerIdx=0;
+      const headers=rows[headerIdx].map(h=>String(h).trim());
+
+      const fechaCol  =headers.findIndex(h=>h.toLowerCase().includes("fecha"));
       const clienteCol=headers.findIndex(h=>h.toLowerCase().includes("cliente"));
-      const medicoCol=headers.findIndex(h=>h.toLowerCase().includes("medico")||h.toLowerCase().includes("médico"));
-      const montoCol=headers.findIndex(h=>h.toLowerCase().includes("total receta"));
+      const medicoCol =headers.findIndex(h=>h.toLowerCase().includes("medico")||h.toLowerCase().includes("médico"));
+      const montoCol  =headers.findIndex(h=>h.toLowerCase().includes("total receta"));
 
       parsedCsvData=[];
       const newDoctors=new Set();
-      dataRows.forEach(row=>{
-        const medico=cleanDoctorName(row[medicoCol]||"");
-        if(!medico||medico.toLowerCase().includes("ministerio"))return;
-        const monto=parseMonto(row[montoCol]||"0");
-        if(monto<=0)return;
-        const fecha=row[fechaCol]||"";
-        const paciente=cleanPatientName(row[clienteCol]||"");
+
+      rows.slice(headerIdx+1).forEach(row=>{
+        if(!row||!row.length) return;
+        const fecha   =String(row[fechaCol]||"").trim();
+        const cliente =String(row[clienteCol]||"").trim();
+        const medico  =String(row[medicoCol]||"").trim();
+        const montoRaw=row[montoCol];
+
+        if(!medico||medico===""||medico.toUpperCase().includes("MINISTERIO")||medico.toUpperCase().includes("CONSUMIDOR")) return;
+        if(!fecha||fecha==="") return;
+
+        // Monto ya es número en xlsx
+        const monto=typeof montoRaw==="number"?montoRaw:parseFloat(String(montoRaw).replace(/[$,]/g,""))||0;
+        if(monto<=0) return;
+
+        // Limpiar nombre paciente: "GARCIA, GUSTAVO GARCIA" → "GARCIA"
+        const paciente=cliente.split(",")[0].trim();
+
         parsedCsvData.push({fecha,paciente,medico,monto,institucion:""});
-        // Check if doctor exists
-        const exists=doctors.some(d=>normName(d.nombre)===normName(medico)||d.nombre.toUpperCase().includes(medico.split(",")[0].toUpperCase()));
-        if(!exists)newDoctors.add(medico);
+
+        const exists=doctors.some(d=>normName(d.nombre)===normName(medico));
+        if(!exists) newDoctors.add(medico);
       });
+
+      if(!parsedCsvData.length){showToast("⚠️ No se encontraron recetas con médico asignado");return;}
 
       const byDoc={};
       parsedCsvData.forEach(r=>{
-        if(!byDoc[r.medico])byDoc[r.medico]={count:0,total:0};
+        if(!byDoc[r.medico]) byDoc[r.medico]={count:0,total:0};
         byDoc[r.medico].count++;byDoc[r.medico].total+=r.monto;
       });
 
-      document.getElementById("csv-preview-title").textContent=`${parsedCsvData.length} recetas de ${Object.keys(byDoc).length} médicos${newDoctors.size>0?` (${newDoctors.size} nuevo${newDoctors.size>1?"s":""})`:""}`; 
-      document.getElementById("csv-preview-content").innerHTML=Object.entries(byDoc).sort((a,b)=>b[1].total-a[1].total).map(([med,d])=>`<div>${newDoctors.has(med)?"🆕 ":"✓ "}<strong>${med}</strong> — ${d.count} recetas · $${formatNum(d.total)}</div>`).join("");
+      const totalDocs=Object.keys(byDoc).length;
+      const newCount=newDoctors.size;
+      document.getElementById("csv-preview-title").textContent=
+        parsedCsvData.length+" recetas de "+totalDocs+" médico"+(totalDocs!==1?"s":"")+(newCount>0?" ("+newCount+" nuevo"+(newCount>1?"s":"")+")":" ");
+      document.getElementById("csv-preview-content").innerHTML=
+        Object.entries(byDoc).sort((a,b)=>b[1].total-a[1].total)
+        .map(([med,d])=>"<div>"+(newDoctors.has(med)?"🆕 ":"✓ ")+"<strong>"+med+"</strong> — "+d.count+" receta"+(d.count>1?"s":"")+" · $"+formatNum(d.total)+"</div>")
+        .join("");
       document.getElementById("csv-preview").style.display="block";
       selectCsvMode("replace");
-    }catch(err){console.error(err);showToast("Error al procesar el CSV");}
+    }catch(err){console.error(err);showToast("Error al leer el archivo: "+err.message);}
   };
-  reader.readAsText(file,"ISO-8859-1");
+  reader.readAsArrayBuffer(file);
 }
 
 function selectCsvMode(mode){
@@ -1069,6 +1065,15 @@ function confirmCsvImport(){
 // ══════════════════════════════════════════════════════
 // COMISIONES DASHBOARD
 // ══════════════════════════════════════════════════════
+function parseDate(str){
+  if(!str) return null;
+  // DD/MM/YYYY
+  const s = String(str).trim();
+  const parts = s.split("/");
+  if(parts.length===3) return new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+  return new Date(s);
+}
+
 function applyFilters(){
   const desde=document.getElementById("periodo-desde").value;
   const hasta=document.getElementById("periodo-hasta").value;
@@ -1118,7 +1123,7 @@ function setChartMode(mode,btn){
 }
 
 function renderBarChart(docList){
-  if(!docList.length){document.getElementById("bar-chart").innerHTML='<div style="text-align:center;color:var(--roble);font-size:.82rem;padding:20px">Sin datos. Importá un CSV para ver el ranking.</div>';return;}
+  if(!docList.length){document.getElementById("bar-chart").innerHTML='<div style="text-align:center;color:var(--roble);font-size:.82rem;padding:20px">Sin datos. Importá un Excel para ver el ranking.</div>';return;}
   const sorted=[...docList].sort((a,b)=>{
     if(chartMode==="comision")return (b.monto*getComision(b.medico)/100)-(a.monto*getComision(a.medico)/100);
     if(chartMode==="pacientes")return b.count-a.count;
@@ -1128,7 +1133,7 @@ function renderBarChart(docList){
   document.getElementById("bar-chart").innerHTML=sorted.map((d,i)=>{
     const val=chartMode==="comision"?d.monto*getComision(d.medico)/100:chartMode==="pacientes"?d.count:d.monto;
     const pct=max>0?Math.max(5,val/max*100):5;
-    const label=chartMode==="pacientes"?`${d.count} pac`:`$${formatNum(val)}`;
+    const label=chartMode==="pacientes"?d.count+" pac":"$"+formatNum(val,true);
     const cls=i===0?" highlight":i===sorted.length-1?" lowlight":"";
     const shortName=d.medico.split(",")[0];
     return `<div class="bar-row${cls}"><div class="bar-label">${shortName}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"><span class="bar-val">${label}</span></div></div></div>`;
@@ -1142,18 +1147,20 @@ function renderCommissionCards(docList){
     const com=d.monto*pct/100;
     const pacUniq=[...new Set(d.pacientes)];
     return `<div class="commission-card" style="animation-delay:${idx*40}ms">
-      <div class="commission-card-header">
+      <div style="display:flex;align-items:center;gap:12px">
         <div class="commission-avatar">${initials(d.medico)}</div>
-        <div class="commission-name">${d.medico}</div>
-        <div class="commission-pct-wrap">
-          <span class="commission-pct-label">%</span>
-          <input class="commission-pct-input" type="number" min="0" max="100" value="${pct}" onchange="updateComision('${d.medico}',this.value,this)" title="Comisión %" />
+        <div style="flex:1;min-width:0">
+          <div class="commission-name">${d.medico}</div>
+          <div style="font-size:.72rem;color:var(--roble);margin-top:2px">${d.count} receta${d.count!==1?"s":""} · ${pacUniq.length} paciente${pacUniq.length!==1?"s":""}</div>
         </div>
-      </div>
-      <div class="commission-stats">
-        <div class="commission-stat"><div class="commission-stat-num dorado">$${formatNum(d.monto)}</div><div class="commission-stat-label">Facturación</div></div>
-        <div class="commission-stat"><div class="commission-stat-num green">$${formatNum(com)}</div><div class="commission-stat-label">Comisión (${pct}%)</div></div>
-        <div class="commission-stat"><div class="commission-stat-num">${pacUniq.length}</div><div class="commission-stat-label">Pacientes únicos</div></div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:1.35rem;font-weight:800;color:var(--green)">$${formatNum(com,true)}</div>
+          <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:4px">
+            <span style="font-size:.68rem;color:var(--roble);font-weight:500">Comisión</span>
+            <input class="commission-pct-input" type="number" min="0" max="100" value="${pct}" onchange="updateComision('${d.medico}',this.value,this)" title="Comisión %" style="width:48px" />
+            <span style="font-size:.68rem;color:var(--roble)">%</span>
+          </div>
+        </div>
       </div>
     </div>`;
   }).join("");
@@ -1221,9 +1228,12 @@ function drawLineChart(labels, values){
   labels.forEach((l,i)=>{const x=pad.l+i*xStep;ctx.fillText(l,x,pad.t+ch+36);});
 }
 
-function formatNum(n){
-  if(n>=1000000)return(n/1000000).toFixed(1)+"M";
-  if(n>=1000)return(n/1000).toFixed(0)+"K";
+function formatNum(n, decimals=false){
+  if(decimals){
+    return n.toLocaleString("es-AR", {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  if(n>=1000000) return (n/1000000).toFixed(1)+"M";
+  if(n>=1000) return Math.round(n).toLocaleString("es-AR");
   return Math.round(n).toLocaleString("es-AR");
 }
 
@@ -1249,7 +1259,6 @@ function selectWordOpt(opt){
 function generateWord(){
   const periodo=document.getElementById("word-periodo-texto").value.trim()||"";
   const instFilter=document.getElementById("word-inst-filter").value;
-  // Get filtered data
   const desde=document.getElementById("periodo-desde").value;
   const hasta=document.getElementById("periodo-hasta").value;
   let filtered=recetas.filter(r=>{
@@ -1262,20 +1271,18 @@ function generateWord(){
     }
     return true;
   });
-  // Group by doctor
   const byDoc={};
   filtered.forEach(r=>{
     if(!byDoc[r.medico])byDoc[r.medico]=[];
     byDoc[r.medico].push(r.paciente);
   });
-  if(!Object.keys(byDoc).length){showToast("⚠️ Sin datos para generar el documento");return;}
-
+  if(!Object.keys(byDoc).length){showToast("⚠️ Sin datos para generar. Importá el Excel primero");return;}
+  closeModal("modal-word");
   if(wordOpt==="todos"){
-    generateWordDoc(byDoc,periodo,"Comisiones_"+periodo.replace(/\s/g,"_")+".docx");
+    generateWordDoc(byDoc,periodo,"Comisiones_"+(periodo.replace(/\s/g,"_")||"doc")+".docx");
   } else {
     generateAllWordDocs(byDoc,periodo);
   }
-  closeModal("modal-word");
 }
 
 function buildDocxXml(byDoc,periodo){
@@ -1310,6 +1317,7 @@ function buildDocxXml(byDoc,periodo){
 function xmlEsc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
 async function generateWordDoc(byDoc,periodo,filename){
+  if(typeof JSZip==="undefined"){showToast("⚠️ Error: JSZip no cargó. Recargá la página.");return;}
   showToast("Generando documento...");
   const docXml=buildDocxXml(byDoc,periodo);
   // Build minimal docx (zip)
@@ -1324,6 +1332,7 @@ async function generateWordDoc(byDoc,periodo,filename){
 }
 
 async function generateAllWordDocs(byDoc,periodo){
+  if(typeof JSZip==="undefined"){showToast("⚠️ Error: JSZip no cargó. Recargá la página.");return;}
   showToast("Generando archivos...");
   const mainZip=new JSZip();
   for(const medico of Object.keys(byDoc)){
@@ -1368,6 +1377,5 @@ document.getElementById("manifest-link").href=URL.createObjectURL(blob);
 checkOnboarding();
 </script>
 <!-- JSZip for Word generation -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </body>
 </html>
