@@ -232,9 +232,9 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
 .fab.hidden{display:none}
 
 /* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,20,16,.6);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(26,20,16,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
 .modal-overlay.open{opacity:1;pointer-events:all}
-.modal-sheet{width:100%;max-width:500px;background:var(--alabaster);border-radius:28px 28px 0 0;padding:0 0 calc(20px + var(--safe-bottom));max-height:90vh;overflow-y:auto;transform:translateY(30px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+.modal-sheet{width:100%;max-width:500px;background:var(--alabaster);border-radius:24px;padding:0 0 calc(20px + var(--safe-bottom));max-height:90vh;overflow-y:auto;transform:translateY(30px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
 .modal-overlay.open .modal-sheet{transform:none}
 .modal-handle{width:36px;height:4px;border-radius:2px;background:var(--arena);margin:14px auto 0;}
 .modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0;}
