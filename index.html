@@ -14,7 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --alabaster:#F5F0E8;--lino:#E8DCC8;--arena:#D4C5A9;
@@ -71,10 +71,9 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
 /* ── NAVBAR ── */
 .navbar{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,var(--black) 0%,var(--espresso) 100%);padding:12px 20px;padding-top:calc(12px + var(--safe-top));display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,169,110,.15);box-shadow:0 4px 30px rgba(0,0,0,.3);}
 .navbar-logo{height:34px;object-fit:contain}
-.navbar-right{display:flex;align-items:center;gap:12px}
-.nav-tabs{display:flex;gap:4px}
-.nav-tab{padding:7px 16px;border-radius:20px;border:none;background:transparent;color:rgba(255,255,255,.5);font-family:'Poppins',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;}
-.nav-tab.active{background:rgba(201,169,110,.2);color:var(--dorado);border:1px solid rgba(201,169,110,.3);}
+.navbar-right{display:flex;align-items:center;gap:8px}
+.nav-icon-btn{width:36px;height:36px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.nav-icon-btn:hover{color:var(--dorado);border-color:rgba(201,169,110,.4)}
 .user-chip{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:all .2s;}
 .user-chip:hover{background:rgba(255,255,255,.1)}
 .user-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--dorado),var(--cobre));display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--black);}
@@ -107,8 +106,11 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
 .day-pill.active.today-pill::after{color:rgba(26,20,16,.5)}
 .day-pill.no-doctors{opacity:.4}
 .schedule-wrap{padding:20px}
-.schedule-title{font-size:1rem;font-weight:700;color:var(--black);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.schedule-title{font-size:1rem;font-weight:700;color:var(--black);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.schedule-title-right{display:flex;align-items:center;gap:8px}
 .schedule-count{font-size:.75rem;font-weight:600;background:var(--lino);color:var(--roble);padding:4px 10px;border-radius:20px;}
+.share-day-btn{width:32px;height:32px;border-radius:10px;border:1.5px solid var(--arena);background:#fff;color:var(--roble);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.share-day-btn:hover{border-color:var(--dorado);color:var(--cobre)}
 .doctor-card{background:#fff;border:1px solid var(--lino);border-radius:20px;padding:18px;margin-bottom:14px;box-shadow:0 2px 16px rgba(44,36,32,.06);transition:transform .2s,box-shadow .2s;animation:cardIn .4s cubic-bezier(.34,1.56,.64,1) both;}
 .doctor-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(44,36,32,.1)}
 @keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
@@ -170,7 +172,7 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
 .comisiones-header-title{font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:4px;}
 .comisiones-header-sub{font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:20px;}
 .periodo-row{display:flex;gap:8px;align-items:center;position:relative;z-index:1;}
-.periodo-input{flex:1;padding:10px 12px;background:rgba(255,255,255,.1);border:1.5px solid rgba(201,169,110,.3);border-radius:10px;color:#fff;font-family:'Poppins',sans-serif;font-size:.82rem;outline:none;}
+.periodo-input{flex:1;padding:10px 12px;background:rgba(255,255,255,.1);border:1.5px solid rgba(201,169,110,.3);border-radius:10px;color:#fff;font-family:'Poppins',sans-serif;font-size:.82rem;outline:none;width:100%;}
 .periodo-input:focus{border-color:var(--dorado)}
 .periodo-label{font-size:.72rem;color:rgba(255,255,255,.5);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
 .periodo-group{flex:1}
@@ -187,6 +189,9 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
 .stat-card{background:#fff;border:1px solid var(--lino);border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(44,36,32,.05);}
 .stat-card-num{font-size:1.3rem;font-weight:800;color:var(--dorado);line-height:1;}
 .stat-card-label{font-size:.7rem;color:var(--roble);font-weight:500;margin-top:3px;line-height:1.3;}
+.stat-card-trend{font-size:.68rem;font-weight:700;margin-top:4px;}
+.stat-card-trend.up{color:#27ae60}
+.stat-card-trend.down{color:#e05252}
 
 /* ── CHART ── */
 .chart-section{margin:8px 20px;background:#fff;border:1px solid var(--lino);border-radius:18px;padding:16px;box-shadow:0 2px 10px rgba(44,36,32,.05);}
@@ -211,20 +216,23 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
 /* ── DOCTOR COMMISSION CARDS ── */
 .commission-list{padding:8px 20px 20px;}
 .commission-card{background:#fff;border:1px solid var(--lino);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(44,36,32,.05);animation:cardIn .4s ease both;}
-.commission-card-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.commission-card.pagado{border-color:rgba(46,204,113,.4);background:linear-gradient(to bottom right,#fff,rgba(46,204,113,.04));}
 .commission-avatar{width:40px;height:40px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--dorado),var(--cobre));display:flex;align-items:center;justify-content:center;font-size:.88rem;font-weight:800;color:var(--black);}
 .commission-name{flex:1;font-size:.88rem;font-weight:700;color:var(--black);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.commission-pct-wrap{display:flex;align-items:center;gap:6px;}
-.commission-pct-label{font-size:.7rem;color:var(--roble);font-weight:500;}
-.commission-pct-input{width:58px;padding:5px 8px;border:1.5px solid var(--arena);border-radius:8px;font-family:'Poppins',sans-serif;font-size:.85rem;font-weight:700;color:var(--cobre);outline:none;text-align:center;}
+.commission-pct-input{width:48px;padding:5px 8px;border:1.5px solid var(--arena);border-radius:8px;font-family:'Poppins',sans-serif;font-size:.85rem;font-weight:700;color:var(--cobre);outline:none;text-align:center;}
 .commission-pct-input:focus{border-color:var(--dorado)}
-.commission-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
-.commission-stat{background:var(--alabaster);border-radius:10px;padding:8px 10px;text-align:center;}
-.commission-stat-num{font-size:.9rem;font-weight:800;color:var(--black);}
-.commission-stat-num.dorado{color:var(--dorado)}
-.commission-stat-num.green{color:#27ae60}
-.commission-stat-label{font-size:.62rem;color:var(--roble);font-weight:500;margin-top:1px;}
-.commission-inst-tag{display:inline-block;font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:6px;background:var(--lino);color:var(--roble);margin-top:6px;margin-right:3px;}
+.commission-footer{display:flex;gap:8px;margin-top:10px;align-items:center;}
+.btn-detalle{flex:1;padding:7px;border-radius:9px;border:1.5px solid var(--arena);background:transparent;color:var(--roble);font-family:'Poppins',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-detalle:hover{border-color:var(--dorado);color:var(--cobre)}
+.btn-pago{flex:1;padding:7px;border-radius:9px;border:none;font-family:'Poppins',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .2s;background:var(--lino);color:var(--roble);}
+.btn-pago.si{background:rgba(46,204,113,.15);color:#1e8e4e;}
+.detalle-recetas{display:none;margin-top:10px;border-top:1px solid var(--lino);padding-top:10px;max-height:220px;overflow-y:auto;}
+.detalle-recetas.open{display:block}
+.detalle-row{display:flex;align-items:center;gap:8px;font-size:.72rem;padding:5px 4px;border-bottom:1px dashed var(--lino);}
+.detalle-row:last-child{border-bottom:none}
+.detalle-fecha{color:var(--roble);flex-shrink:0;width:64px;}
+.detalle-pac{flex:1;font-weight:600;color:var(--espresso);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.detalle-monto{flex-shrink:0;font-weight:700;color:var(--black);}
 
 /* ── FAB ── */
 .fab{position:fixed;right:20px;bottom:calc(76px + var(--safe-bottom));width:56px;height:56px;border-radius:18px;border:none;background:linear-gradient(135deg,var(--dorado),var(--cobre));color:var(--black);font-size:1.5rem;cursor:pointer;box-shadow:0 8px 24px rgba(201,169,110,.4);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;z-index:90;}
@@ -255,7 +263,7 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
 .btn-primary{flex:1;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--dorado),var(--cobre));color:var(--black);font-family:'Poppins',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:transform .15s;}
 .btn-primary:active{transform:scale(.97)}
 .btn-secondary-out{padding:13px 20px;border-radius:12px;border:1.5px solid var(--arena);background:transparent;color:var(--roble);font-family:'Poppins',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s;}
-.upload-section{margin:0 20px 20px;border:2px dashed var(--arena);border-radius:18px;padding:24px;text-align:center;background:#fff;transition:all .2s;cursor:pointer;}
+.upload-section{margin:0 0 16px;border:2px dashed var(--arena);border-radius:18px;padding:24px;text-align:center;background:#fff;transition:all .2s;cursor:pointer;}
 .upload-section:hover,.upload-section.dragover{border-color:var(--dorado);background:rgba(201,169,110,.05);}
 .upload-section p{font-size:.85rem;color:var(--roble);margin-top:8px}
 .upload-section strong{color:var(--cobre)}
@@ -288,6 +296,9 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
 .word-option-icon{width:36px;height:36px;border-radius:10px;background:var(--lino);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .word-option-text{font-size:.85rem;font-weight:600;color:var(--black);}
 .word-option-sub{font-size:.75rem;color:var(--roble);}
+
+/* Backup modal */
+.backup-btn-row{display:flex;flex-direction:column;gap:10px;}
 </style>
 </head>
 <body>
@@ -311,7 +322,7 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
     <p>Con esta app vas a poder:</p>
     <div class="ob-feature"><div class="ob-feature-icon">📅</div><div class="ob-feature-text"><strong>Ver el cronograma del día</strong>Consultá qué oftalmólogos atienden hoy.</div></div>
     <div class="ob-feature"><div class="ob-feature-icon">👥</div><div class="ob-feature-text"><strong>Gestionar profesionales</strong>Agregá, editá o eliminá oftalmólogos.</div></div>
-    <div class="ob-feature" style="margin-bottom:20px"><div class="ob-feature-icon">💰</div><div class="ob-feature-text"><strong>Dashboard de comisiones</strong>Importá recetas y calculá comisiones automáticamente.</div></div>
+    <div class="ob-feature" style="margin-bottom:20px"><div class="ob-feature-icon">💰</div><div class="ob-feature-text"><strong>Dashboard de comisiones</strong>Importá recetas, controlá pagos y generá liquidaciones.</div></div>
     <button class="ob-btn" id="ob-btn-2">Entendido →</button>
   </div>
   <div class="ob-card" id="ob-card-3">
@@ -346,6 +357,9 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
   <nav class="navbar">
     <img class="navbar-logo" src="https://dcdn-us.mitiendanube.com/stores/005/247/050/themes/common/logo-1796149085-1731459126-0c336543fa2133770fe42e939e46e2031731459126-480-0.webp" alt="Black Optica" />
     <div class="navbar-right">
+      <button class="nav-icon-btn" onclick="openBackupModal()" title="Respaldo de datos">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
       <div class="user-chip" onclick="editUserName()">
         <div class="user-avatar" id="nav-avatar">?</div>
         <span class="user-name" id="nav-username">Usuario</span>
@@ -372,7 +386,12 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
     <div class="schedule-wrap">
       <div class="schedule-title">
         <span id="schedule-day-label">Hoy</span>
-        <span class="schedule-count" id="schedule-count">0 profesionales</span>
+        <div class="schedule-title-right">
+          <span class="schedule-count" id="schedule-count">0 profesionales</span>
+          <button class="share-day-btn" onclick="shareDaySchedule()" title="Compartir cronograma del día">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
+        </div>
       </div>
       <div id="schedule-list"></div>
     </div>
@@ -429,12 +448,16 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Word
       </button>
+      <button class="word-btn" onclick="generatePdf()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        PDF
+      </button>
     </div>
 
     <!-- KPI Summary -->
     <div class="stats-summary" id="stats-summary">
-      <div class="stat-card"><div class="stat-card-num" id="kpi-facturacion">$0</div><div class="stat-card-label">Facturación total</div></div>
-      <div class="stat-card"><div class="stat-card-num" id="kpi-comisiones">$0</div><div class="stat-card-label">Comisiones totales</div></div>
+      <div class="stat-card"><div class="stat-card-num" id="kpi-facturacion">$0</div><div class="stat-card-label">Facturación total</div><div class="stat-card-trend" id="kpi-trend"></div></div>
+      <div class="stat-card"><div class="stat-card-num" id="kpi-comisiones">$0</div><div class="stat-card-label">Comisiones totales</div><div class="stat-card-trend" id="kpi-pendiente"></div></div>
       <div class="stat-card"><div class="stat-card-num" id="kpi-pacientes">0</div><div class="stat-card-label">Recetas procesadas</div></div>
       <div class="stat-card"><div class="stat-card-num" id="kpi-medicos">0</div><div class="stat-card-label">Médicos activos</div></div>
     </div>
@@ -544,7 +567,7 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
     <div class="modal-handle"></div>
     <div class="modal-header"><span class="modal-title">Importar recetas (.xlsx)</span><button class="modal-close" onclick="closeModal('modal-csv')">✕</button></div>
     <div class="modal-body">
-      <p style="font-size:.82rem;color:var(--roble);margin-bottom:16px;line-height:1.6">Importá el Excel exportado de tu sistema. Columnas: <strong>Fecha Registro, Cliente, Medico, Total Receta S/IVA</strong>. Las filas sin médico se ignoran automáticamente.</p>
+      <p style="font-size:.82rem;color:var(--roble);margin-bottom:16px;line-height:1.6">Importá el Excel exportado de tu sistema. Columnas: <strong>Fecha Registro, Cliente, Medico, Total Receta S/IVA</strong>. Las filas sin médico y las recetas duplicadas se ignoran automáticamente.</p>
       <div class="upload-section" id="csv-dropzone" onclick="document.getElementById('csv-input').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleCsvDrop(event)">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--arena)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         <p><strong>Tocá para seleccionar</strong> o arrastrá un archivo</p>
@@ -600,6 +623,23 @@ body{font-family:'Poppins',sans-serif;background:var(--alabaster);color:var(--bl
   </div>
 </div>
 
+<!-- MODAL BACKUP -->
+<div class="modal-overlay" id="modal-backup">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><span class="modal-title">Respaldo de datos</span><button class="modal-close" onclick="closeModal('modal-backup')">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--roble);margin-bottom:16px;line-height:1.6">Los datos viven en este navegador. Si borrás el historial o cambiás de teléfono, se pierden. Descargá un respaldo cada tanto y guardalo en Drive o donde prefieras.</p>
+      <div class="backup-btn-row">
+        <button class="btn-primary" onclick="exportBackup()">⬇ Descargar respaldo (.json)</button>
+        <button class="btn-secondary-out" style="width:100%" onclick="document.getElementById('backup-input').click()">⬆ Restaurar desde un respaldo</button>
+        <input type="file" id="backup-input" accept=".json" style="display:none" onchange="restoreBackup(event)" />
+      </div>
+      <p style="font-size:.72rem;color:var(--roble);margin-top:14px;line-height:1.5;opacity:.7">El respaldo incluye: médicos y horarios, recetas importadas, porcentajes de comisión y estados de pago.</p>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM -->
 <div class="confirm-overlay" id="confirm-dialog">
   <div class="confirm-box">
@@ -644,7 +684,8 @@ const INITIAL_DOCTORS = [
 // ══════════════════════════════════════════════════════
 let doctors = [];
 let recetas = []; // [{fecha, paciente, medico, monto, institucion}]
-let comisiones = {}; // {doctorId: pct}
+let comisiones = {}; // {normName: pct}
+let pagos = {};      // {"normName|desde|hasta": true}
 let selectedDay = "";
 let importedData = [];
 let importMode = "add";
@@ -653,6 +694,7 @@ let chartMode = "facturacion";
 let wordOpt = "todos";
 let csvImportMode = "add";
 let parsedCsvData = [];
+let lastDocList = []; // cache para acordeones
 
 function loadState() {
   const savedDocs = localStorage.getItem("blackoptica_doctors");
@@ -662,11 +704,14 @@ function loadState() {
   recetas = savedRec ? JSON.parse(savedRec) : [];
   const savedCom = localStorage.getItem("blackoptica_comisiones");
   comisiones = savedCom ? JSON.parse(savedCom) : {};
+  const savedPag = localStorage.getItem("blackoptica_pagos");
+  pagos = savedPag ? JSON.parse(savedPag) : {};
 }
 function saveState() {
   localStorage.setItem("blackoptica_doctors", JSON.stringify(doctors));
   localStorage.setItem("blackoptica_recetas", JSON.stringify(recetas));
   localStorage.setItem("blackoptica_comisiones", JSON.stringify(comisiones));
+  localStorage.setItem("blackoptica_pagos", JSON.stringify(pagos));
 }
 function getUserName() { return localStorage.getItem("blackoptica_username") || ""; }
 function setUserName(n) { localStorage.setItem("blackoptica_username", n); }
@@ -678,7 +723,58 @@ function setComision(nombre, pct) {
   comisiones[normName(nombre)] = pct;
   saveState();
 }
-function normName(n) { return n.toLowerCase().trim().replace(/\s+/g,' '); }
+// MEJORA: normaliza acentos → "Muñoz" y "MUNOZ" son el mismo médico
+function normName(n) {
+  return (n||"").toLowerCase().trim()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/\s+/g,' ');
+}
+function firmaReceta(r){ return `${r.fecha}|${normName(r.paciente)}|${normName(r.medico)}|${r.monto}`; }
+
+// ══════════════════════════════════════════════════════
+// BACKUP / RESTORE
+// ══════════════════════════════════════════════════════
+function openBackupModal(){ document.getElementById("modal-backup").classList.add("open"); }
+function exportBackup(){
+  const data = {
+    version: 2,
+    exportado: new Date().toISOString(),
+    doctors, recetas, comisiones, pagos,
+    username: getUserName()
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const d = new Date();
+  a.download = `blackoptica_respaldo_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}.json`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  showToast("✓ Respaldo descargado");
+}
+function restoreBackup(e){
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try{
+      const data = JSON.parse(ev.target.result);
+      if(!data.doctors || !Array.isArray(data.doctors)) throw new Error("Formato inválido");
+      doctors = data.doctors;
+      recetas = data.recetas || [];
+      comisiones = data.comisiones || {};
+      pagos = data.pagos || {};
+      if(data.username) setUserName(data.username);
+      saveState();
+      updateNavUser(); renderHero(); renderDaySelector(); renderSchedule(); renderDoctorsList(); applyFilters();
+      closeModal("modal-backup");
+      showToast(`✓ Respaldo restaurado: ${doctors.length} médicos, ${recetas.length} recetas`);
+    }catch(err){
+      showToast("⚠️ El archivo no es un respaldo válido");
+    }
+  };
+  reader.readAsText(f);
+  e.target.value = "";
+}
 
 // ══════════════════════════════════════════════════════
 // ONBOARDING
@@ -737,7 +833,6 @@ function startApp() {
   renderDaySelector();
   renderSchedule();
   renderHero();
-  // Set default period (current month)
   const now = new Date();
   const y = now.getFullYear(), m = String(now.getMonth()+1).padStart(2,'0');
   document.getElementById("periodo-desde").value = `${y}-${m}-01`;
@@ -813,18 +908,35 @@ function renderSchedule() {
   }).join("");
 }
 
+// MEJORA: compartir el cronograma del día por WhatsApp / portapapeles
+function shareDaySchedule(){
+  const docsForDay = getDoctorsForDay(selectedDay);
+  if(!docsForDay.length){ showToast("Sin profesionales ese día"); return; }
+  let txt = `👁 *Black Óptica — ${selectedDay}*\n\n`;
+  docsForDay.forEach(doc=>{
+    txt += `*${doc.nombre}*\n`;
+    doc.institucionesDelDia.forEach(inst=>{
+      inst.turnos.forEach(t=>{
+        txt += `  ${t.desde} a ${t.hasta} · ${t.tipo} (${t.duracion}min)\n`;
+      });
+    });
+    txt += `\n`;
+  });
+  if(navigator.share){
+    navigator.share({text:txt}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(txt).then(()=>showToast("✓ Cronograma copiado, pegalo en WhatsApp"));
+  }
+}
+
 // ══════════════════════════════════════════════════════
 // NAVIGATION
 // ══════════════════════════════════════════════════════
 function showPage(page) {
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".bottom-nav-tab").forEach(t=>t.classList.remove("active"));
   document.getElementById(`page-${page}`).classList.add("active");
   document.getElementById(`bnav-${page}`).classList.add("active");
-  const tabs=document.querySelectorAll(".nav-tab");
-  const pageIdx={home:0,doctors:1,comisiones:2}[page]||0;
-  tabs[pageIdx]?.classList.add("active");
   document.getElementById("fab").classList.toggle("hidden", page!=="doctors");
   if(page==="doctors") renderDoctorsList();
   if(page==="comisiones") applyFilters();
@@ -834,8 +946,8 @@ function showPage(page) {
 // DOCTORS LIST & MODAL
 // ══════════════════════════════════════════════════════
 function renderDoctorsList() {
-  const query=(document.getElementById("search-input")?.value||"").toLowerCase();
-  const filtered=doctors.filter(d=>d.nombre.toLowerCase().includes(query));
+  const query=normName(document.getElementById("search-input")?.value||"");
+  const filtered=doctors.filter(d=>normName(d.nombre).includes(query));
   document.getElementById("doctors-count-label").textContent=`${filtered.length} profesionales en lista`;
   if(!filtered.length){document.getElementById("doctors-grid").innerHTML=`<div style="grid-column:1/-1"><div class="empty-state"><div class="empty-title">Sin resultados</div></div></div>`;return;}
   document.getElementById("doctors-grid").innerHTML=filtered.map((doc,idx)=>{
@@ -944,13 +1056,13 @@ function selectImportMode(mode){
 function confirmImport(){
   if(!importedData.length)return;
   if(importMode==="replace")doctors=importedData;
-  else importedData.forEach(nd=>{const i=doctors.findIndex(d=>d.nombre.toLowerCase()===nd.nombre.toLowerCase());if(i!==-1)doctors[i]=nd;else doctors.push(nd);});
+  else importedData.forEach(nd=>{const i=doctors.findIndex(d=>normName(d.nombre)===normName(nd.nombre));if(i!==-1)doctors[i]=nd;else doctors.push(nd);});
   saveState();closeModal("modal-upload");renderDoctorsList();renderSchedule();renderHero();
   showToast(`${importedData.length} profesionales importados ✓`);importedData=[];
 }
 
 // ══════════════════════════════════════════════════════
-// CSV COMISIONES IMPORT
+// EXCEL COMISIONES IMPORT
 // ══════════════════════════════════════════════════════
 function openCsvModal(){
   document.getElementById("csv-preview").style.display="none";
@@ -977,7 +1089,6 @@ function processExcelFile(file){
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
       if(!rows.length){showToast("⚠️ El archivo está vacío");return;}
 
-      // Find header row
       let headerIdx=rows.findIndex(r=>r.some(c=>String(c).includes("Fecha")&&String(c).length<20));
       if(headerIdx===-1) headerIdx=0;
       const headers=rows[headerIdx].map(h=>String(h).trim());
@@ -992,19 +1103,19 @@ function processExcelFile(file){
 
       rows.slice(headerIdx+1).forEach(row=>{
         if(!row||!row.length) return;
-        const fecha   =String(row[fechaCol]||"").trim();
+        const fechaRaw = row[fechaCol];
+        // MEJORA: soporta fecha como serial de Excel, texto DD/MM/YYYY o Date
+        const fecha = fechaToStr(fechaRaw);
         const cliente =String(row[clienteCol]||"").trim();
         const medico  =String(row[medicoCol]||"").trim();
         const montoRaw=row[montoCol];
 
         if(!medico||medico===""||medico.toUpperCase().includes("MINISTERIO")||medico.toUpperCase().includes("CONSUMIDOR")) return;
-        if(!fecha||fecha==="") return;
+        if(!fecha) return;
 
-        // Monto ya es número en xlsx
         const monto=typeof montoRaw==="number"?montoRaw:parseFloat(String(montoRaw).replace(/[$,]/g,""))||0;
         if(monto<=0) return;
 
-        // Limpiar nombre paciente: "GARCIA, GUSTAVO GARCIA" → "GARCIA"
         const paciente=cliente.split(",")[0].trim();
 
         parsedCsvData.push({fecha,paciente,medico,monto,institucion:""});
@@ -1015,6 +1126,10 @@ function processExcelFile(file){
 
       if(!parsedCsvData.length){showToast("⚠️ No se encontraron recetas con médico asignado");return;}
 
+      // MEJORA: detectar duplicados contra lo ya cargado
+      const existentes=new Set(recetas.map(firmaReceta));
+      const dupCount=parsedCsvData.filter(r=>existentes.has(firmaReceta(r))).length;
+
       const byDoc={};
       parsedCsvData.forEach(r=>{
         if(!byDoc[r.medico]) byDoc[r.medico]={count:0,total:0};
@@ -1023,8 +1138,9 @@ function processExcelFile(file){
 
       const totalDocs=Object.keys(byDoc).length;
       const newCount=newDoctors.size;
-      document.getElementById("csv-preview-title").textContent=
-        parsedCsvData.length+" recetas de "+totalDocs+" médico"+(totalDocs!==1?"s":"")+(newCount>0?" ("+newCount+" nuevo"+(newCount>1?"s":"")+")":" ");
+      let titulo=parsedCsvData.length+" recetas de "+totalDocs+" médico"+(totalDocs!==1?"s":"")+(newCount>0?" ("+newCount+" nuevo"+(newCount>1?"s":"")+")":"");
+      if(dupCount>0) titulo+=` · ⚠️ ${dupCount} ya cargadas`;
+      document.getElementById("csv-preview-title").textContent=titulo;
       document.getElementById("csv-preview-content").innerHTML=
         Object.entries(byDoc).sort((a,b)=>b[1].total-a[1].total)
         .map(([med,d])=>"<div>"+(newDoctors.has(med)?"🆕 ":"✓ ")+"<strong>"+med+"</strong> — "+d.count+" receta"+(d.count>1?"s":"")+" · $"+formatNum(d.total)+"</div>")
@@ -1036,6 +1152,19 @@ function processExcelFile(file){
   reader.readAsArrayBuffer(file);
 }
 
+// MEJORA: normaliza cualquier formato de fecha a "DD/MM/YYYY"
+function fechaToStr(raw){
+  if(raw===null||raw===undefined||raw==="") return "";
+  if(raw instanceof Date && !isNaN(raw)) return `${String(raw.getDate()).padStart(2,"0")}/${String(raw.getMonth()+1).padStart(2,"0")}/${raw.getFullYear()}`;
+  if(typeof raw==="number"){
+    // Serial de Excel → Date (epoch 1899-12-30)
+    const d=new Date(Math.round((raw-25569)*86400*1000));
+    if(isNaN(d)) return "";
+    return `${String(d.getUTCDate()).padStart(2,"0")}/${String(d.getUTCMonth()+1).padStart(2,"0")}/${d.getUTCFullYear()}`;
+  }
+  return String(raw).trim();
+}
+
 function selectCsvMode(mode){
   csvImportMode=mode;
   const a=document.getElementById("csv-opt-add"),r=document.getElementById("csv-opt-replace");
@@ -1045,80 +1174,142 @@ function selectCsvMode(mode){
 
 function confirmCsvImport(){
   if(!parsedCsvData.length)return;
-  // Auto-create new doctors
+  // Auto-crear médicos nuevos
   const existing=new Set(doctors.map(d=>normName(d.nombre)));
   parsedCsvData.forEach(r=>{
     if(!r.medico)return;
-    // Try to find match
-    const match=doctors.find(d=>normName(d.nombre)===normName(r.medico)||d.nombre.toUpperCase().startsWith(r.medico.split(",")[0].toUpperCase()));
+    const match=doctors.find(d=>normName(d.nombre)===normName(r.medico)||normName(d.nombre).startsWith(normName(r.medico.split(",")[0])+","));
     if(!match&&!existing.has(normName(r.medico))){
       existing.add(normName(r.medico));
       doctors.push({id:r.medico.toLowerCase().replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").slice(0,30)+"-"+Date.now().toString(36),nombre:r.medico,servicio:"OFTALMOLOGIA-JR",instituciones:[{nombre:"Black Optica",turnos:[]}]});
     }
   });
-  if(csvImportMode==="replace")recetas=parsedCsvData;
-  else recetas=[...recetas,...parsedCsvData];
+  let omitidas=0;
+  if(csvImportMode==="replace"){
+    recetas=parsedCsvData;
+  } else {
+    // MEJORA: no duplicar recetas ya cargadas
+    const existentes=new Set(recetas.map(firmaReceta));
+    const nuevas=parsedCsvData.filter(r=>{
+      if(existentes.has(firmaReceta(r))){omitidas++;return false;}
+      existentes.add(firmaReceta(r));
+      return true;
+    });
+    recetas=[...recetas,...nuevas];
+  }
   saveState();closeModal("modal-csv");applyFilters();
-  showToast(`${parsedCsvData.length} recetas importadas ✓`);parsedCsvData=[];
+  const importadas=parsedCsvData.length-omitidas;
+  showToast(`${importadas} recetas importadas ✓${omitidas>0?` (${omitidas} duplicadas omitidas)`:""}`);
+  parsedCsvData=[];
 }
 
 // ══════════════════════════════════════════════════════
 // COMISIONES DASHBOARD
 // ══════════════════════════════════════════════════════
 function parseDate(str){
-  if(!str) return null;
-  // DD/MM/YYYY
+  if(str===null||str===undefined||str==="") return null;
+  // MEJORA: soporta serial de Excel por si quedó guardado como número
+  if(typeof str==="number"){
+    const d=new Date(Math.round((str-25569)*86400*1000));
+    return isNaN(d)?null:d;
+  }
   const s = String(str).trim();
   const parts = s.split("/");
-  if(parts.length===3) return new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
-  return new Date(s);
+  if(parts.length===3){
+    const d=new Date(parseInt(parts[2]), parseInt(parts[1])-1, parseInt(parts[0]));
+    return isNaN(d)?null:d;
+  }
+  const d=new Date(s);
+  return isNaN(d)?null:d;
+}
+function fmtFecha(str){
+  const d=parseDate(str);
+  if(!d) return String(str);
+  return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+
+function filterRecetas(desde,hasta,inst){
+  return recetas.filter(r=>{
+    if(inst&&r.institucion&&r.institucion!==inst)return false;
+    if(desde||hasta){
+      const d=parseDate(r.fecha);
+      if(!d)return true;
+      if(desde&&d<new Date(desde+"T00:00:00"))return false;
+      if(hasta&&d>new Date(hasta+"T23:59:59"))return false;
+    }
+    return true;
+  });
 }
 
 function applyFilters(){
   const desde=document.getElementById("periodo-desde").value;
   const hasta=document.getElementById("periodo-hasta").value;
   const inst=document.getElementById("filter-institucion").value;
-  let filtered=recetas.filter(r=>{
-    if(inst&&r.institucion&&r.institucion!==inst)return false;
-    if(desde||hasta){
-      const d=parseDate(r.fecha);
-      if(!d)return true;
-      if(desde&&d<new Date(desde))return false;
-      if(hasta&&d>new Date(hasta+"T23:59:59"))return false;
-    }
-    return true;
-  });
-  renderDashboard(filtered);
+  renderDashboard(filterRecetas(desde,hasta,inst), desde, hasta, inst);
 }
 
-function renderDashboard(data){
-  // KPIs
+function getPagoKey(medico, desde, hasta){ return `${normName(medico)}|${desde}|${hasta}`; }
+
+function renderDashboard(data, desde, hasta, inst){
   const totalFact=data.reduce((a,r)=>a+r.monto,0);
   const byDoc={};
   data.forEach(r=>{
-    if(!byDoc[r.medico])byDoc[r.medico]={medico:r.medico,monto:0,count:0,pacientes:[]};
+    if(!byDoc[r.medico])byDoc[r.medico]={medico:r.medico,monto:0,count:0,pacientes:[],recetas:[]};
     byDoc[r.medico].monto+=r.monto;byDoc[r.medico].count++;
     byDoc[r.medico].pacientes.push(r.paciente);
+    byDoc[r.medico].recetas.push(r);
   });
   const docList=Object.values(byDoc).sort((a,b)=>b.monto-a.monto);
+  lastDocList=docList;
   const totalCom=docList.reduce((a,d)=>a+(d.monto*getComision(d.medico)/100),0);
   document.getElementById("kpi-facturacion").textContent=`$${formatNum(totalFact)}`;
   document.getElementById("kpi-comisiones").textContent=`$${formatNum(totalCom)}`;
   document.getElementById("kpi-pacientes").textContent=data.length;
   document.getElementById("kpi-medicos").textContent=docList.length;
-  // Bar chart
+
+  // MEJORA: comparativa vs período anterior de igual duración
+  renderTrend(totalFact, desde, hasta, inst);
+
+  // MEJORA: comisiones pendientes de pago
+  const pendiente=docList.reduce((a,d)=>{
+    if(pagos[getPagoKey(d.medico,desde,hasta)]) return a;
+    return a+(d.monto*getComision(d.medico)/100);
+  },0);
+  const kpiPend=document.getElementById("kpi-pendiente");
+  if(docList.length&&pendiente>0){
+    kpiPend.textContent=`$${formatNum(pendiente)} sin pagar`;
+    kpiPend.className="stat-card-trend down";
+  } else if(docList.length){
+    kpiPend.textContent="Todo pagado ✓";
+    kpiPend.className="stat-card-trend up";
+  } else { kpiPend.textContent=""; }
+
   renderBarChart(docList);
-  // Commission cards
-  renderCommissionCards(docList);
-  // Evolution
+  renderCommissionCards(docList, desde, hasta);
   renderEvolution(data);
+}
+
+function renderTrend(totalActual, desde, hasta, inst){
+  const el=document.getElementById("kpi-trend");
+  el.textContent="";
+  if(!desde||!hasta||totalActual<=0) return;
+  const d1=new Date(desde+"T00:00:00"), d2=new Date(hasta+"T00:00:00");
+  const durMs=d2-d1+86400000;
+  const prevHasta=new Date(d1.getTime()-86400000);
+  const prevDesde=new Date(prevHasta.getTime()-durMs+86400000);
+  const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const prevData=filterRecetas(iso(prevDesde),iso(prevHasta),inst);
+  const totalPrev=prevData.reduce((a,r)=>a+r.monto,0);
+  if(totalPrev<=0) return;
+  const pct=((totalActual-totalPrev)/totalPrev)*100;
+  el.textContent=`${pct>=0?"▲":"▼"} ${Math.abs(pct).toFixed(0)}% vs período anterior`;
+  el.className=`stat-card-trend ${pct>=0?"up":"down"}`;
 }
 
 function setChartMode(mode,btn){
   chartMode=mode;
   document.querySelectorAll(".chart-tab").forEach(t=>t.classList.remove("active"));
   btn.classList.add("active");
-  // re-render with current data
   applyFilters();
 }
 
@@ -1140,30 +1331,55 @@ function renderBarChart(docList){
   }).join("");
 }
 
-function renderCommissionCards(docList){
-  if(!docList.length){document.getElementById("commission-list").innerHTML='<div class="empty-state"><div class="empty-title">Sin datos de recetas</div><div class="empty-sub">Importá un CSV para ver las comisiones.</div></div>';return;}
+function renderCommissionCards(docList, desde, hasta){
+  if(!docList.length){document.getElementById("commission-list").innerHTML='<div class="empty-state"><div class="empty-title">Sin datos de recetas</div><div class="empty-sub">Importá un Excel para ver las comisiones.</div></div>';return;}
   document.getElementById("commission-list").innerHTML=docList.map((d,idx)=>{
     const pct=getComision(d.medico);
     const com=d.monto*pct/100;
     const pacUniq=[...new Set(d.pacientes)];
-    return `<div class="commission-card" style="animation-delay:${idx*40}ms">
+    const pagado=!!pagos[getPagoKey(d.medico,desde,hasta)];
+    const recetasHtml=d.recetas
+      .slice().sort((a,b)=>(parseDate(a.fecha)||0)-(parseDate(b.fecha)||0))
+      .map(r=>`<div class="detalle-row"><span class="detalle-fecha">${fmtFecha(r.fecha)}</span><span class="detalle-pac">${escHtml(r.paciente)}</span><span class="detalle-monto">$${formatNum(r.monto)}</span></div>`).join("");
+    return `<div class="commission-card${pagado?" pagado":""}" style="animation-delay:${idx*40}ms" id="ccard-${idx}">
       <div style="display:flex;align-items:center;gap:12px">
         <div class="commission-avatar">${initials(d.medico)}</div>
         <div style="flex:1;min-width:0">
-          <div class="commission-name">${d.medico}</div>
-          <div style="font-size:.72rem;color:var(--roble);margin-top:2px">${d.count} receta${d.count!==1?"s":""} · ${pacUniq.length} paciente${pacUniq.length!==1?"s":""}</div>
+          <div class="commission-name">${escHtml(d.medico)}</div>
+          <div style="font-size:.72rem;color:var(--roble);margin-top:2px">${d.count} receta${d.count!==1?"s":""} · ${pacUniq.length} paciente${pacUniq.length!==1?"s":""} · fact. $${formatNum(d.monto)}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:1.35rem;font-weight:800;color:var(--green)">$${formatNum(com,true)}</div>
+          <div style="font-size:1.35rem;font-weight:800;color:${pagado?"#1e8e4e":"var(--green)"}">$${formatNum(com,true)}</div>
           <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:4px">
             <span style="font-size:.68rem;color:var(--roble);font-weight:500">Comisión</span>
-            <input class="commission-pct-input" type="number" min="0" max="100" value="${pct}" onchange="updateComision('${d.medico}',this.value,this)" title="Comisión %" style="width:48px" />
+            <input class="commission-pct-input" type="number" min="0" max="100" value="${pct}" onchange="updateComision('${escAttr(d.medico)}',this.value,this)" title="Comisión %" />
             <span style="font-size:.68rem;color:var(--roble)">%</span>
           </div>
         </div>
       </div>
+      <div class="commission-footer">
+        <button class="btn-detalle" onclick="toggleDetalle(${idx})">📋 Ver pacientes</button>
+        <button class="btn-pago${pagado?" si":""}" onclick="togglePago('${escAttr(d.medico)}')">${pagado?"✓ Pagado":"Marcar pagado"}</button>
+      </div>
+      <div class="detalle-recetas" id="detalle-${idx}">${recetasHtml}</div>
     </div>`;
   }).join("");
+}
+
+function escHtml(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function escAttr(s){return String(s||"").replace(/'/g,"\\'").replace(/"/g,"&quot;");}
+
+function toggleDetalle(idx){
+  document.getElementById(`detalle-${idx}`).classList.toggle("open");
+}
+function togglePago(medico){
+  const desde=document.getElementById("periodo-desde").value;
+  const hasta=document.getElementById("periodo-hasta").value;
+  const key=getPagoKey(medico,desde,hasta);
+  if(pagos[key]) delete pagos[key]; else pagos[key]=true;
+  saveState();
+  applyFilters();
+  showToast(pagos[key]?`✓ ${medico.split(",")[0]} marcado como pagado`:`${medico.split(",")[0]} pendiente de pago`);
 }
 
 function updateComision(medico, val, input){
@@ -1176,7 +1392,6 @@ function updateComision(medico, val, input){
 
 function renderEvolution(data){
   if(!data.length){document.getElementById("evol-section").style.display="none";return;}
-  // Group by month
   const byMonth={};
   data.forEach(r=>{
     const d=parseDate(r.fecha);
@@ -1201,7 +1416,6 @@ function drawLineChart(labels, values){
   const pad={t:20,r:20,b:50,l:60};
   const cw=canvas.width-pad.l-pad.r,ch=canvas.height-pad.t-pad.b;
   const maxV=Math.max(...values)*1.1||1;
-  // Grid
   ctx.strokeStyle="rgba(212,197,169,.4)";ctx.lineWidth=1;
   for(let i=0;i<=4;i++){
     const y=pad.t+ch-(ch*i/4);
@@ -1209,21 +1423,16 @@ function drawLineChart(labels, values){
     ctx.fillStyle="rgba(139,111,71,.8)";ctx.font="20px Poppins,sans-serif";ctx.textAlign="right";
     ctx.fillText("$"+formatNum(maxV*i/4),pad.l-8,y+6);
   }
-  // Line
   const xStep=labels.length>1?cw/(labels.length-1):cw;
   const pts=values.map((v,i)=>({x:pad.l+i*xStep,y:pad.t+ch-(ch*v/maxV)}));
-  // Gradient fill
   const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);
   grad.addColorStop(0,"rgba(201,169,110,.3)");grad.addColorStop(1,"rgba(201,169,110,0)");
   ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
   ctx.lineTo(pts[pts.length-1].x,pad.t+ch);ctx.lineTo(pts[0].x,pad.t+ch);ctx.closePath();
   ctx.fillStyle=grad;ctx.fill();
-  // Line
   ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));
   ctx.strokeStyle="#C9A96E";ctx.lineWidth=4;ctx.lineJoin="round";ctx.stroke();
-  // Points
   pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,8,0,Math.PI*2);ctx.fillStyle="#fff";ctx.fill();ctx.strokeStyle="#C9A96E";ctx.lineWidth=4;ctx.stroke();});
-  // X labels
   ctx.fillStyle="rgba(139,111,71,.8)";ctx.font="20px Poppins,sans-serif";ctx.textAlign="center";
   labels.forEach((l,i)=>{const x=pad.l+i*xStep;ctx.fillText(l,x,pad.t+ch+36);});
 }
@@ -1233,8 +1442,90 @@ function formatNum(n, decimals=false){
     return n.toLocaleString("es-AR", {minimumFractionDigits:2, maximumFractionDigits:2});
   }
   if(n>=1000000) return (n/1000000).toFixed(1)+"M";
-  if(n>=1000) return Math.round(n).toLocaleString("es-AR");
   return Math.round(n).toLocaleString("es-AR");
+}
+
+// ══════════════════════════════════════════════════════
+// PDF LIQUIDACIONES (una página por médico)
+// ══════════════════════════════════════════════════════
+function generatePdf(){
+  if(!window.jspdf){showToast("⚠️ jsPDF no cargó. Recargá la página.");return;}
+  const desde=document.getElementById("periodo-desde").value;
+  const hasta=document.getElementById("periodo-hasta").value;
+  if(!lastDocList.length){showToast("⚠️ Sin datos. Importá el Excel primero");return;}
+  showToast("Generando PDF...");
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({unit:"mm",format:"a4"});
+  const pw=210, margin=18;
+  const periodoTxt=(desde&&hasta)?`Período: ${desde.split("-").reverse().join("/")} al ${hasta.split("-").reverse().join("/")}`:"";
+
+  lastDocList.forEach((d,i)=>{
+    if(i>0) pdf.addPage();
+    const pct=getComision(d.medico);
+    const com=d.monto*pct/100;
+    let y=margin;
+
+    // Header banda negra
+    pdf.setFillColor(26,20,16);
+    pdf.rect(0,0,pw,30,"F");
+    pdf.setTextColor(201,169,110);
+    pdf.setFont("helvetica","bold");pdf.setFontSize(16);
+    pdf.text("BLACK ÓPTICA",margin,13);
+    pdf.setTextColor(255,255,255);
+    pdf.setFont("helvetica","normal");pdf.setFontSize(9);
+    pdf.text("Liquidación de comisiones",margin,20);
+    if(periodoTxt){pdf.text(periodoTxt,pw-margin,20,{align:"right"});}
+
+    y=42;
+    pdf.setTextColor(26,20,16);
+    pdf.setFont("helvetica","bold");pdf.setFontSize(14);
+    pdf.text(d.medico.toUpperCase(),margin,y);
+    y+=8;
+    pdf.setDrawColor(201,169,110);pdf.setLineWidth(.6);
+    pdf.line(margin,y,pw-margin,y);
+    y+=8;
+
+    // Resumen
+    pdf.setFontSize(10);pdf.setFont("helvetica","normal");
+    pdf.text(`Recetas: ${d.count}   ·   Facturación: $${formatNum(d.monto,true)}   ·   Comisión: ${pct}%`,margin,y);
+    y+=6;
+    pdf.setFont("helvetica","bold");pdf.setFontSize(12);
+    pdf.setTextColor(122,92,58);
+    pdf.text(`Total a liquidar: $${formatNum(com,true)}`,margin,y);
+    pdf.setTextColor(26,20,16);
+    y+=10;
+
+    // Tabla de recetas
+    pdf.setFont("helvetica","bold");pdf.setFontSize(9);
+    pdf.text("Fecha",margin,y);
+    pdf.text("Paciente",margin+28,y);
+    pdf.text("Monto",pw-margin,y,{align:"right"});
+    y+=2;
+    pdf.setDrawColor(212,197,169);pdf.setLineWidth(.3);
+    pdf.line(margin,y,pw-margin,y);
+    y+=5;
+    pdf.setFont("helvetica","normal");
+
+    const recs=d.recetas.slice().sort((a,b)=>(parseDate(a.fecha)||0)-(parseDate(b.fecha)||0));
+    recs.forEach(r=>{
+      if(y>275){pdf.addPage();y=margin;}
+      pdf.text(fmtFecha(r.fecha),margin,y);
+      pdf.text(String(r.paciente).slice(0,52),margin+28,y);
+      pdf.text("$"+formatNum(r.monto,true),pw-margin,y,{align:"right"});
+      y+=5.5;
+    });
+
+    // Firma
+    if(y>255){pdf.addPage();y=margin+10;} else {y=Math.max(y+20,255);}
+    pdf.setDrawColor(26,20,16);pdf.setLineWidth(.3);
+    pdf.line(margin,y,margin+60,y);
+    pdf.setFontSize(8);
+    pdf.text("Firma y aclaración",margin,y+5);
+  });
+
+  const nombre=`Liquidaciones_${desde||""}_${hasta||""}.pdf`.replace(/--/g,"-");
+  pdf.save(nombre);
+  showToast("✓ PDF descargado");
 }
 
 // ══════════════════════════════════════════════════════
@@ -1244,7 +1535,7 @@ function openWordModal(){
   const desde=document.getElementById("periodo-desde").value;
   const hasta=document.getElementById("periodo-hasta").value;
   if(desde&&hasta){
-    const d=new Date(desde),h=new Date(hasta);
+    const d=new Date(desde+"T00:00:00"),h=new Date(hasta+"T00:00:00");
     const meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
     document.getElementById("word-periodo-texto").value=`${d.getDate()} al ${h.getDate()} de ${meses[h.getMonth()]}`;
   }
@@ -1261,16 +1552,7 @@ function generateWord(){
   const instFilter=document.getElementById("word-inst-filter").value;
   const desde=document.getElementById("periodo-desde").value;
   const hasta=document.getElementById("periodo-hasta").value;
-  let filtered=recetas.filter(r=>{
-    if(instFilter&&r.institucion&&r.institucion!==instFilter)return false;
-    if(desde||hasta){
-      const d=parseDate(r.fecha);
-      if(!d)return true;
-      if(desde&&d<new Date(desde))return false;
-      if(hasta&&d>new Date(hasta+"T23:59:59"))return false;
-    }
-    return true;
-  });
+  const filtered=filterRecetas(desde,hasta,instFilter);
   const byDoc={};
   filtered.forEach(r=>{
     if(!byDoc[r.medico])byDoc[r.medico]=[];
@@ -1286,48 +1568,61 @@ function generateWord(){
 }
 
 function buildDocxXml(byDoc,periodo){
-  const meses={"ENERO":1};
   let bodyContent="";
   const doctors_sorted=Object.keys(byDoc).sort();
   doctors_sorted.forEach((medico,idx)=>{
     const pacientes=[...new Set(byDoc[medico])].sort();
-    // Doctor name — big, bold
     bodyContent+=`<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="120"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t>${xmlEsc(medico.toUpperCase())}</w:t></w:r></w:p>`;
-    // PACIENTE: label
     bodyContent+=`<w:p><w:pPr><w:spacing w:before="120" w:after="60"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><w:t>PACIENTE:</w:t></w:r></w:p>`;
-    // Patient list
     pacientes.forEach(p=>{
       bodyContent+=`<w:p><w:pPr><w:ind w:left="360"/><w:spacing w:before="0" w:after="40"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t>-${xmlEsc(p)}</w:t></w:r></w:p>`;
     });
-    // Period
     if(periodo){
       bodyContent+=`<w:p><w:pPr><w:spacing w:before="120" w:after="0"/></w:pPr><w:r><w:rPr><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t xml:space="preserve">Período: ${xmlEsc(periodo)}</w:t></w:r></w:p>`;
     }
-    // Page break between doctors (except last)
     if(idx<doctors_sorted.length-1){
       bodyContent+=`<w:p><w:r><w:br w:type="page"/></w:r></w:p>`;
     }
   });
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:cx="http://schemas.microsoft.com/office/drawing/2014/chartex" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml" xmlns:w16cex="http://schemas.microsoft.com/office/word/2018/wordml/cex" xmlns:w16cid="http://schemas.microsoft.com/office/word/2016/wordml/cid" xmlns:w16="http://schemas.microsoft.com/office/word/2018/wordml" xmlns:w16sdtdh="http://schemas.microsoft.com/office/word/2020/wordml/sdtdatahash" xmlns:w16se="http://schemas.microsoft.com/office/word/2015/wordml/symex" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 w15 w16se w16cid w16 w16cex w16sdtdh wp14">
+<w:document xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="w14">
   <w:body>${bodyContent}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body>
 </w:document>`;
 }
 
+// MEJORA: styles.xml + fontTable para que el .docx abra bien en Word mobile y Google Docs
+const DOCX_STYLES=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="es-AR"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="160" w:line="259" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>
+  <w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>
+</w:styles>`;
+
 function xmlEsc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+function buildDocxZip(docXml){
+  const zip=new JSZip();
+  zip.file("word/document.xml",docXml);
+  zip.file("word/styles.xml",DOCX_STYLES);
+  zip.file("[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`);
+  zip.file("_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
+  zip.file("word/_rels/document.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+  return zip;
+}
+
+function downloadBlob(blob, filename){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000); // MEJORA: liberar memoria
+}
 
 async function generateWordDoc(byDoc,periodo,filename){
   if(typeof JSZip==="undefined"){showToast("⚠️ Error: JSZip no cargó. Recargá la página.");return;}
   showToast("Generando documento...");
-  const docXml=buildDocxXml(byDoc,periodo);
-  // Build minimal docx (zip)
-  const zip=new JSZip();
-  zip.file("word/document.xml",docXml);
-  zip.file("[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`);
-  zip.file("_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
-  zip.file("word/_rels/document.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`);
-  const blob=await zip.generateAsync({type:"blob"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+  const zip=buildDocxZip(buildDocxXml(byDoc,periodo));
+  const blob=await zip.generateAsync({type:"blob",mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+  downloadBlob(blob,filename);
   showToast("✓ Documento descargado");
 }
 
@@ -1336,19 +1631,12 @@ async function generateAllWordDocs(byDoc,periodo){
   showToast("Generando archivos...");
   const mainZip=new JSZip();
   for(const medico of Object.keys(byDoc)){
-    const singleDoc={[medico]:byDoc[medico]};
-    const docXml=buildDocxXml(singleDoc,periodo);
-    const zip=new JSZip();
-    zip.file("word/document.xml",docXml);
-    zip.file("[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>`);
-    zip.file("_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
-    zip.file("word/_rels/document.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>`);
-    const docBlob=await zip.generateAsync({type:"blob"});
+    const zip=buildDocxZip(buildDocxXml({[medico]:byDoc[medico]},periodo));
+    const docBlob=await zip.generateAsync({type:"blob",mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
     mainZip.file(`${medico.replace(/[^a-zA-Z0-9]/g,"_")}.docx`,docBlob);
   }
   const zipBlob=await mainZip.generateAsync({type:"blob"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(zipBlob);
-  a.download=`Comisiones_${periodo.replace(/\s/g,"_")}.zip`;a.click();
+  downloadBlob(zipBlob,`Comisiones_${periodo.replace(/\s/g,"_")}.zip`);
   showToast("✓ ZIP descargado");
 }
 
@@ -1376,6 +1664,5 @@ document.getElementById("manifest-link").href=URL.createObjectURL(blob);
 // ══════════════════════════════════════════════════════
 checkOnboarding();
 </script>
-<!-- JSZip for Word generation -->
 </body>
 </html>
