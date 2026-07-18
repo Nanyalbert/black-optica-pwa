@@ -707,6 +707,12 @@ body{font-family:var(--font-body);background:var(--alabaster);color:var(--black)
         <div><div class="word-option-text">Documento por médico</div><div class="word-option-sub">Descarga un ZIP con un .docx por cada uno</div></div>
       </div>
       <div class="form-group" style="margin-top:16px">
+        <label class="form-label">Médico</label>
+        <select class="form-select" id="word-medico-filter">
+          <option value="">Todos los médicos</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">Período (texto para el doc)</label>
         <input class="form-input" id="word-periodo-texto" type="text" placeholder="ej: 1 al 28 de FEBRERO" />
       </div>
@@ -1694,7 +1700,6 @@ function renderCommissionCards(docList, desde, hasta){
       <div class="commission-footer">
         <button class="btn-detalle" onclick="toggleDetalle(${idx})">📋 Detalle</button>
         <button class="btn-extra" onclick="openExtraModal('${escAttr(d.medico)}')">+ Monto</button>
-        <button class="btn-detalle" onclick="wordForDoctor('${escAttr(d.medico)}')">📄 Word</button>
       </div>
       <div class="detalle-recetas" id="detalle-${idx}">${recetasHtml}</div>
     </div>`;
@@ -1870,31 +1875,15 @@ function generatePdf(){
   showToast("✓ PDF descargado");
 }
 
-// Word individual de un solo médico (desde su tarjeta de comisión)
-function wordForDoctor(medico){
-  const desde=document.getElementById("periodo-desde").value;
-  const hasta=document.getElementById("periodo-hasta").value;
-  const inst=document.getElementById("filter-institucion").value;
-  const pacientes=filterRecetas(desde,hasta,inst)
-    .filter(r=>!r.extra&&normName(r.medico)===normName(medico))
-    .map(r=>r.paciente);
-  if(!pacientes.length){showToast("⚠️ Sin pacientes en el período para este médico");return;}
-  let periodo="";
-  if(desde&&hasta){
-    const d=new Date(desde+"T00:00:00"),h=new Date(hasta+"T00:00:00");
-    const meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
-    periodo=`${d.getDate()} al ${h.getDate()} de ${meses[h.getMonth()]}`;
-  }
-  const filename=medico.replace(/[^a-zA-Z0-9]/g,"_")+(periodo?"_"+periodo.replace(/\s/g,"_"):"")+".docx";
-  generateWordDoc({[medico]:pacientes},periodo,filename);
-}
-
 // ══════════════════════════════════════════════════════
 // WORD GENERATOR
 // ══════════════════════════════════════════════════════
 function openWordModal(){
   const desde=document.getElementById("periodo-desde").value;
   const hasta=document.getElementById("periodo-hasta").value;
+  const inst=document.getElementById("filter-institucion").value;
+  const medicos=[...new Set(filterRecetas(desde,hasta,inst).filter(r=>!r.extra).map(r=>r.medico))].sort();
+  document.getElementById("word-medico-filter").innerHTML='<option value="">Todos los médicos</option>'+medicos.map(m=>`<option value="${escAttr(m)}">${escHtml(m)}</option>`).join("");
   if(desde&&hasta){
     const d=new Date(desde+"T00:00:00"),h=new Date(hasta+"T00:00:00");
     const meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
@@ -1911,18 +1900,23 @@ function selectWordOpt(opt){
 function generateWord(){
   const periodo=document.getElementById("word-periodo-texto").value.trim()||"";
   const instFilter=document.getElementById("word-inst-filter").value;
+  const medicoFilter=document.getElementById("word-medico-filter").value;
   const desde=document.getElementById("periodo-desde").value;
   const hasta=document.getElementById("periodo-hasta").value;
   const filtered=filterRecetas(desde,hasta,instFilter);
   const byDoc={};
   filtered.forEach(r=>{
-    if(r.extra)return; // la cobertura de obra social no va en la lista de pacientes
+    if(r.extra)return; // los montos agregados no van en la lista de pacientes
+    if(medicoFilter&&normName(r.medico)!==normName(medicoFilter))return;
     if(!byDoc[r.medico])byDoc[r.medico]=[];
     byDoc[r.medico].push(r.paciente);
   });
-  if(!Object.keys(byDoc).length){showToast("⚠️ Sin datos para generar. Importá el Excel primero");return;}
+  if(!Object.keys(byDoc).length){showToast(medicoFilter?"⚠️ Sin pacientes de ese médico en el período":"⚠️ Sin datos para generar. Importá el Excel primero");return;}
   closeModal("modal-word");
-  if(wordOpt==="todos"){
+  if(medicoFilter){
+    const filename=medicoFilter.replace(/[^a-zA-Z0-9]/g,"_")+(periodo?"_"+periodo.replace(/\s/g,"_"):"")+".docx";
+    generateWordDoc(byDoc,periodo,filename);
+  } else if(wordOpt==="todos"){
     generateWordDoc(byDoc,periodo,"Comisiones_"+(periodo.replace(/\s/g,"_")||"doc")+".docx");
   } else {
     generateAllWordDocs(byDoc,periodo);
@@ -1934,7 +1928,7 @@ function buildDocxXml(byDoc,periodo){
   const doctors_sorted=Object.keys(byDoc).sort();
   doctors_sorted.forEach((medico,idx)=>{
     const pacientes=[...new Set(byDoc[medico])].sort();
-    bodyContent+=`<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="120"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="72"/><w:szCs w:val="72"/></w:rPr><w:t>${xmlEsc(medico.toUpperCase())}</w:t></w:r></w:p>`;
+    bodyContent+=`<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="120"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="44"/><w:szCs w:val="44"/></w:rPr><w:t>${xmlEsc(medico.toUpperCase())}</w:t></w:r></w:p>`;
     bodyContent+=`<w:p><w:pPr><w:spacing w:before="120" w:after="60"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr><w:t>PACIENTE:</w:t></w:r></w:p>`;
     pacientes.forEach(p=>{
       bodyContent+=`<w:p><w:pPr><w:ind w:left="360"/><w:spacing w:before="0" w:after="40"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t>-${xmlEsc(p)}</w:t></w:r></w:p>`;
@@ -1948,7 +1942,7 @@ function buildDocxXml(byDoc,periodo){
   });
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="w14">
-  <w:body>${bodyContent}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr></w:body>
+  <w:body>${bodyContent}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1500" w:bottom="1440" w:left="1500"/></w:sectPr></w:body>
 </w:document>`;
 }
 
