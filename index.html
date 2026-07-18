@@ -1572,18 +1572,20 @@ function applyFilters(){
 
 function getPagoKey(medico, desde, hasta){ return `${normName(medico)}|${desde}|${hasta}`; }
 
+function comisionDe(d){ return d.monto*getComision(d.medico)/100; }
 function renderDashboard(data, desde, hasta, inst){
   const totalFact=data.reduce((a,r)=>a+r.monto,0);
   const byDoc={};
   data.forEach(r=>{
-    if(!byDoc[r.medico])byDoc[r.medico]={medico:r.medico,monto:0,count:0,pacientes:[],recetas:[]};
+    if(!byDoc[r.medico])byDoc[r.medico]={medico:r.medico,monto:0,extras:0,count:0,pacientes:[],recetas:[]};
     byDoc[r.medico].monto+=r.monto;byDoc[r.medico].count++;
+    if(r.extra)byDoc[r.medico].extras+=r.monto;
     byDoc[r.medico].pacientes.push(r.paciente);
     byDoc[r.medico].recetas.push(r);
   });
   const docList=Object.values(byDoc).sort((a,b)=>b.monto-a.monto);
   lastDocList=docList;
-  const totalCom=docList.reduce((a,d)=>a+(d.monto*getComision(d.medico)/100),0);
+  const totalCom=docList.reduce((a,d)=>a+comisionDe(d),0);
   document.getElementById("kpi-facturacion").textContent=`$${formatNum(totalFact)}`;
   document.getElementById("kpi-comisiones").textContent=`$${formatNum(totalCom)}`;
   document.getElementById("kpi-pacientes").textContent=data.filter(r=>!r.extra).length;
@@ -1595,7 +1597,7 @@ function renderDashboard(data, desde, hasta, inst){
   // MEJORA: comisiones pendientes de pago
   const pendiente=docList.reduce((a,d)=>{
     if(pagos[getPagoKey(d.medico,desde,hasta)]) return a;
-    return a+(d.monto*getComision(d.medico)/100);
+    return a+comisionDe(d);
   },0);
   const kpiPend=document.getElementById("kpi-pendiente");
   if(docList.length&&pendiente>0){
@@ -1638,13 +1640,13 @@ function setChartMode(mode,btn){
 function renderBarChart(docList){
   if(!docList.length){document.getElementById("bar-chart").innerHTML='<div style="text-align:center;color:var(--roble);font-size:.82rem;padding:20px">Sin datos. Importá un Excel para ver el ranking.</div>';return;}
   const sorted=[...docList].sort((a,b)=>{
-    if(chartMode==="comision")return (b.monto*getComision(b.medico)/100)-(a.monto*getComision(a.medico)/100);
+    if(chartMode==="comision")return comisionDe(b)-comisionDe(a);
     if(chartMode==="pacientes")return b.count-a.count;
     return b.monto-a.monto;
   });
-  const max=sorted[0]?( chartMode==="comision"?sorted[0].monto*getComision(sorted[0].medico)/100: chartMode==="pacientes"?sorted[0].count:sorted[0].monto ):1;
+  const max=sorted[0]?( chartMode==="comision"?comisionDe(sorted[0]): chartMode==="pacientes"?sorted[0].count:sorted[0].monto ):1;
   document.getElementById("bar-chart").innerHTML=sorted.map((d,i)=>{
-    const val=chartMode==="comision"?d.monto*getComision(d.medico)/100:chartMode==="pacientes"?d.count:d.monto;
+    const val=chartMode==="comision"?comisionDe(d):chartMode==="pacientes"?d.count:d.monto;
     const pct=max>0?Math.max(5,val/max*100):5;
     const label=chartMode==="pacientes"?d.count+" pac":"$"+formatNum(val,true);
     const cls=i===0?" highlight":i===sorted.length-1?" lowlight":"";
@@ -1657,7 +1659,7 @@ function renderCommissionCards(docList, desde, hasta){
   if(!docList.length){document.getElementById("commission-list").innerHTML='<div class="empty-state"><div class="empty-title">Sin datos de recetas</div><div class="empty-sub">Importá un Excel para ver las comisiones.</div></div>';return;}
   document.getElementById("commission-list").innerHTML=docList.map((d,idx)=>{
     const pct=getComision(d.medico);
-    const com=d.monto*pct/100;
+    const com=comisionDe(d);
     const pacUniq=[...new Set(d.pacientes)];
     const pagado=!!pagos[getPagoKey(d.medico,desde,hasta)];
     const recetasHtml=d.recetas
@@ -1692,6 +1694,7 @@ function renderCommissionCards(docList, desde, hasta){
       <div class="commission-footer">
         <button class="btn-detalle" onclick="toggleDetalle(${idx})">📋 Detalle</button>
         <button class="btn-extra" onclick="openExtraModal('${escAttr(d.medico)}')">+ Monto</button>
+        <button class="btn-detalle" onclick="wordForDoctor('${escAttr(d.medico)}')">📄 Word</button>
       </div>
       <div class="detalle-recetas" id="detalle-${idx}">${recetasHtml}</div>
     </div>`;
@@ -1795,7 +1798,7 @@ function generatePdf(){
   lastDocList.forEach((d,i)=>{
     if(i>0) pdf.addPage();
     const pct=getComision(d.medico);
-    const com=d.monto*pct/100;
+    const com=comisionDe(d);
     let y=margin;
 
     // Header banda negra
@@ -1865,6 +1868,25 @@ function generatePdf(){
   const nombre=`Liquidaciones_${desde||""}_${hasta||""}.pdf`.replace(/--/g,"-");
   pdf.save(nombre);
   showToast("✓ PDF descargado");
+}
+
+// Word individual de un solo médico (desde su tarjeta de comisión)
+function wordForDoctor(medico){
+  const desde=document.getElementById("periodo-desde").value;
+  const hasta=document.getElementById("periodo-hasta").value;
+  const inst=document.getElementById("filter-institucion").value;
+  const pacientes=filterRecetas(desde,hasta,inst)
+    .filter(r=>!r.extra&&normName(r.medico)===normName(medico))
+    .map(r=>r.paciente);
+  if(!pacientes.length){showToast("⚠️ Sin pacientes en el período para este médico");return;}
+  let periodo="";
+  if(desde&&hasta){
+    const d=new Date(desde+"T00:00:00"),h=new Date(hasta+"T00:00:00");
+    const meses=["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+    periodo=`${d.getDate()} al ${h.getDate()} de ${meses[h.getMonth()]}`;
+  }
+  const filename=medico.replace(/[^a-zA-Z0-9]/g,"_")+(periodo?"_"+periodo.replace(/\s/g,"_"):"")+".docx";
+  generateWordDoc({[medico]:pacientes},periodo,filename);
 }
 
 // ══════════════════════════════════════════════════════
