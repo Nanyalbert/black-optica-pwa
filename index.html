@@ -372,6 +372,24 @@ body{font-family:var(--font-body);background:var(--alabaster);color:var(--black)
 .doc-mgmt-bday{font-size:.68rem;color:var(--cobre);display:flex;align-items:center;gap:5px;font-weight:400;}
 .crm-header-card{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
 
+/* ── FACTURACIÓN ADICIONAL (obra social) ── */
+.detalle-row.extra{background:rgba(201,169,110,.07);border-radius:8px;border-bottom:none;margin:2px 0;padding:6px 8px;}
+.detalle-row.extra .detalle-pac{color:var(--cobre);font-weight:600;}
+.extra-tag{font-size:.56rem;font-weight:700;letter-spacing:.08em;background:var(--grad-gold);color:var(--black);border-radius:10px;padding:2px 6px;flex-shrink:0;}
+.extra-del{background:none;border:none;color:var(--arena);cursor:pointer;font-size:.8rem;padding:0 2px;flex-shrink:0;line-height:1;}
+.extra-del:hover{color:#b0554d}
+.btn-extra{flex:1;padding:8px;border-radius:50px;border:1px dashed var(--dorado);background:rgba(201,169,110,.06);color:var(--cobre);font-family:var(--font-body);font-size:.66rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .25s;}
+.btn-extra:hover{background:rgba(201,169,110,.14)}
+
+/* ── TILDE VISUAL DE PAGO ── */
+.check-toggle{width:38px;height:38px;border-radius:50%;border:2px solid var(--arena);background:var(--marfil);color:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .25s cubic-bezier(.34,1.56,.64,1);padding:0;}
+.check-toggle:hover{border-color:var(--dorado)}
+.check-toggle.on{background:linear-gradient(135deg,#4ecb85,#2c9e61);border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(44,158,97,.4),inset 0 1px 0 rgba(255,255,255,.35);animation:checkPop .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes checkPop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.check-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;}
+.check-label{font-size:.54rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--arena);transition:color .25s;}
+.check-wrap.on .check-label{color:#2c9e61}
+
 /* Backup modal */
 .backup-btn-row{display:flex;flex-direction:column;gap:10px;}
 </style>
@@ -523,6 +541,10 @@ body{font-family:var(--font-body);background:var(--alabaster);color:var(--black)
       <button class="word-btn" onclick="openWordModal()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Word
+      </button>
+      <button class="word-btn" onclick="openExtraModal()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Sumar monto
       </button>
       <button class="word-btn" onclick="generatePdf()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
@@ -726,6 +748,24 @@ body{font-family:var(--font-body);background:var(--alabaster);color:var(--black)
     <div class="modal-handle"></div>
     <div class="modal-header"><span class="modal-title">Ficha del profesional</span><button class="modal-close" onclick="closeModal('modal-crm')">✕</button></div>
     <div class="modal-body" id="crm-body"></div>
+  </div>
+</div>
+
+<!-- MODAL FACTURACION ADICIONAL -->
+<div class="modal-overlay" id="modal-extra">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><span class="modal-title">Sumar monto a facturación</span><button class="modal-close" onclick="closeModal('modal-extra')">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--roble);margin-bottom:16px;line-height:1.6;font-weight:300">Sumale un monto a la facturación del médico. Se incluye en su facturación, comisión y liquidación del período.</p>
+      <div class="form-group"><label class="form-label">Médico</label><select class="form-select" id="extra-medico"></select></div>
+      <div class="turno-editor-row" style="margin-bottom:0">
+        <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" id="extra-fecha" type="date" /></div>
+        <div class="form-group"><label class="form-label">Monto ($)</label><input class="form-input" id="extra-monto" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+      </div>
+      <div class="form-group"><label class="form-label">Descripción (opcional)</label><input class="form-input" id="extra-desc" type="text" placeholder="ej: Cobertura obra social" maxlength="60" /></div>
+      <button class="btn-primary" style="width:100%" onclick="saveExtra()">Agregar al período</button>
+    </div>
   </div>
 </div>
 
@@ -1446,6 +1486,45 @@ function confirmCsvImport(){
   parsedCsvData=[];
 }
 
+
+// ══════════════════════════════════════════════════════
+// FACTURACIÓN ADICIONAL (cobertura obra social, etc.)
+// Se guarda dentro de recetas con flag extra:true
+// ══════════════════════════════════════════════════════
+function openExtraModal(medicoPre){
+  const sel=document.getElementById("extra-medico");
+  const nombres=[...new Set([...doctors.map(d=>d.nombre),...recetas.map(r=>r.medico)])].sort();
+  sel.innerHTML=nombres.map(n=>`<option value="${escAttr(n)}"${medicoPre&&normName(n)===normName(medicoPre)?" selected":""}>${escHtml(n)}</option>`).join("");
+  const hoy=new Date();
+  document.getElementById("extra-fecha").value=`${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,"0")}-${String(hoy.getDate()).padStart(2,"0")}`;
+  document.getElementById("extra-monto").value="";
+  document.getElementById("extra-desc").value="";
+  document.getElementById("modal-extra").classList.add("open");
+}
+function saveExtra(){
+  const medico=document.getElementById("extra-medico").value;
+  const fechaIso=document.getElementById("extra-fecha").value;
+  const monto=parseFloat(document.getElementById("extra-monto").value);
+  const desc=document.getElementById("extra-desc").value.trim();
+  if(!medico){showToast("⚠️ Elegí un médico");return;}
+  if(!fechaIso){showToast("⚠️ Ingresá la fecha");return;}
+  if(!monto||monto<=0){showToast("⚠️ Ingresá un monto válido");return;}
+
+  const p=fechaIso.split("-");
+  const fecha=`${p[2]}/${p[1]}/${p[0]}`;
+  recetas.push({fecha,paciente:desc||"Monto adicional",medico,monto,institucion:"",extra:true,xid:Date.now().toString(36)+Math.random().toString(36).slice(2,6)});
+  saveState();
+  closeModal("modal-extra");
+  applyFilters();
+  showToast(`✓ $${formatNum(monto)} agregados a ${medico.split(",")[0]}`);
+}
+function delExtra(xid){
+  recetas=recetas.filter(r=>r.xid!==xid);
+  saveState();
+  applyFilters();
+  showToast("Facturación eliminada");
+}
+
 // ══════════════════════════════════════════════════════
 // COMISIONES DASHBOARD
 // ══════════════════════════════════════════════════════
@@ -1507,7 +1586,7 @@ function renderDashboard(data, desde, hasta, inst){
   const totalCom=docList.reduce((a,d)=>a+(d.monto*getComision(d.medico)/100),0);
   document.getElementById("kpi-facturacion").textContent=`$${formatNum(totalFact)}`;
   document.getElementById("kpi-comisiones").textContent=`$${formatNum(totalCom)}`;
-  document.getElementById("kpi-pacientes").textContent=data.length;
+  document.getElementById("kpi-pacientes").textContent=data.filter(r=>!r.extra).length;
   document.getElementById("kpi-medicos").textContent=docList.length;
 
   // MEJORA: comparativa vs período anterior de igual duración
@@ -1583,26 +1662,36 @@ function renderCommissionCards(docList, desde, hasta){
     const pagado=!!pagos[getPagoKey(d.medico,desde,hasta)];
     const recetasHtml=d.recetas
       .slice().sort((a,b)=>(parseDate(a.fecha)||0)-(parseDate(b.fecha)||0))
-      .map(r=>`<div class="detalle-row"><span class="detalle-fecha">${fmtFecha(r.fecha)}</span><span class="detalle-pac">${escHtml(r.paciente)}</span><span class="detalle-monto">$${formatNum(r.monto)}</span></div>`).join("");
+      .map(r=>r.extra
+        ?`<div class="detalle-row extra"><span class="detalle-fecha">${fmtFecha(r.fecha)}</span><span class="extra-tag">＋</span><span class="detalle-pac">${escHtml(r.paciente)}</span><span class="detalle-monto">$${formatNum(r.monto)}</span><button class="extra-del" onclick="delExtra('${r.xid}')" title="Eliminar">✕</button></div>`
+        :`<div class="detalle-row"><span class="detalle-fecha">${fmtFecha(r.fecha)}</span><span class="detalle-pac">${escHtml(r.paciente)}</span><span class="detalle-monto">$${formatNum(r.monto)}</span></div>`).join("");
+    const nExtras=d.recetas.filter(r=>r.extra).length;
+    const nRec=d.count-nExtras;
     return `<div class="commission-card${pagado?" pagado":""}" style="animation-delay:${idx*40}ms" id="ccard-${idx}">
       <div style="display:flex;align-items:center;gap:12px">
         <div class="commission-avatar">${initials(d.medico)}</div>
         <div style="flex:1;min-width:0">
           <div class="commission-name">${escHtml(d.medico)}</div>
-          <div style="font-size:.72rem;color:var(--roble);margin-top:2px">${d.count} receta${d.count!==1?"s":""} · ${pacUniq.length} paciente${pacUniq.length!==1?"s":""} · fact. $${formatNum(d.monto)}</div>
+          <div style="font-size:.72rem;color:var(--roble);margin-top:2px">${nRec} receta${nRec!==1?"s":""}${nExtras>0?` · ${nExtras} monto${nExtras!==1?"s":""} agregado${nExtras!==1?"s":""}`:""} · fact. $${formatNum(d.monto)}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:1.35rem;font-weight:800;color:${pagado?"#1e8e4e":"var(--green)"}">$${formatNum(com,true)}</div>
+          <div style="font-family:var(--font-display);font-size:1.35rem;color:${pagado?"#2c9e61":"var(--oro-oscuro)"}">$${formatNum(com,true)}</div>
           <div style="display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:4px">
             <span style="font-size:.68rem;color:var(--roble);font-weight:500">Comisión</span>
             <input class="commission-pct-input" type="number" min="0" max="100" value="${pct}" onchange="updateComision('${escAttr(d.medico)}',this.value,this)" title="Comisión %" />
             <span style="font-size:.68rem;color:var(--roble)">%</span>
           </div>
         </div>
+        <div class="check-wrap${pagado?" on":""}">
+          <button class="check-toggle${pagado?" on":""}" onclick="togglePago('${escAttr(d.medico)}')" title="${pagado?"Pagado — tocá para desmarcar":"Marcar como pagado"}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <span class="check-label">${pagado?"Pagado":"Pendiente"}</span>
+        </div>
       </div>
       <div class="commission-footer">
-        <button class="btn-detalle" onclick="toggleDetalle(${idx})">📋 Ver pacientes</button>
-        <button class="btn-pago${pagado?" si":""}" onclick="togglePago('${escAttr(d.medico)}')">${pagado?"✓ Pagado":"Marcar pagado"}</button>
+        <button class="btn-detalle" onclick="toggleDetalle(${idx})">📋 Detalle</button>
+        <button class="btn-extra" onclick="openExtraModal('${escAttr(d.medico)}')">+ Monto</button>
       </div>
       <div class="detalle-recetas" id="detalle-${idx}">${recetasHtml}</div>
     </div>`;
@@ -1619,10 +1708,11 @@ function togglePago(medico){
   const desde=document.getElementById("periodo-desde").value;
   const hasta=document.getElementById("periodo-hasta").value;
   const key=getPagoKey(medico,desde,hasta);
-  if(pagos[key]) delete pagos[key]; else pagos[key]=true;
+  const nuevoEstado=!pagos[key];
+  if(nuevoEstado) pagos[key]=true; else delete pagos[key];
   saveState();
   applyFilters();
-  showToast(pagos[key]?`✓ ${medico.split(",")[0]} marcado como pagado`:`${medico.split(",")[0]} pendiente de pago`);
+  showToast(nuevoEstado?`✓ ${medico.split(",")[0]} marcado como pagado`:`${medico.split(",")[0]} pendiente de pago`);
 }
 
 function updateComision(medico, val, input){
@@ -1730,7 +1820,11 @@ function generatePdf(){
 
     // Resumen
     pdf.setFontSize(10);pdf.setFont("helvetica","normal");
-    pdf.text(`Recetas: ${d.count}   ·   Facturación: $${formatNum(d.monto,true)}   ·   Comisión: ${pct}%`,margin,y);
+    const nExtrasP=d.recetas.filter(r=>r.extra).length;
+    const montoExtrasP=d.recetas.filter(r=>r.extra).reduce((a,r)=>a+r.monto,0);
+    let resumen=`Recetas: ${d.count-nExtrasP}   ·   Facturación: $${formatNum(d.monto,true)}   ·   Comisión: ${pct}%`;
+    if(nExtrasP>0) resumen=`Recetas: ${d.count-nExtrasP}   ·   Montos agregados: $${formatNum(montoExtrasP,true)}   ·   Facturación total: $${formatNum(d.monto,true)}   ·   Comisión: ${pct}%`;
+    pdf.text(resumen,margin,y);
     y+=6;
     pdf.setFont("helvetica","bold");pdf.setFontSize(12);
     pdf.setTextColor(122,92,58);
@@ -1753,8 +1847,10 @@ function generatePdf(){
     recs.forEach(r=>{
       if(y>275){pdf.addPage();y=margin;}
       pdf.text(fmtFecha(r.fecha),margin,y);
+      if(r.extra){pdf.setFont("helvetica","bolditalic");pdf.setTextColor(122,92,58);}
       pdf.text(String(r.paciente).slice(0,52),margin+28,y);
       pdf.text("$"+formatNum(r.monto,true),pw-margin,y,{align:"right"});
+      if(r.extra){pdf.setFont("helvetica","normal");pdf.setTextColor(26,20,16);}
       y+=5.5;
     });
 
@@ -1798,6 +1894,7 @@ function generateWord(){
   const filtered=filterRecetas(desde,hasta,instFilter);
   const byDoc={};
   filtered.forEach(r=>{
+    if(r.extra)return; // la cobertura de obra social no va en la lista de pacientes
     if(!byDoc[r.medico])byDoc[r.medico]=[];
     byDoc[r.medico].push(r.paciente);
   });
